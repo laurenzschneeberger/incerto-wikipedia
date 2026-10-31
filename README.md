@@ -35,6 +35,7 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
 * `fonts/pagella-*.woff2`: TeX Gyre Pagella, GUST Font License (`licenses/`).
 * `fonts/goudy-initialen.woff2`: Goudy Initialen from the CTAN `initials` bundle, the same font
   `\usepackage{GoudyIn}` loads (`licenses/Goudy-Initialen.txt`).
+* The manicule icon is the U+261E outline from GNU FreeSerif (GPL with font exception).
 
 ## Beyond the book
 
@@ -55,7 +56,3 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
   text itself to add a note or remove it. Everything is kept per article in `chrome.storage.local`.
 * **Notebook.** The ☞ (a manicule, the pointing hand readers drew in margins) opens every highlight
   and note on the page, grouped by section. Click one to jump to it; download them all as Markdown.
-
-## Fonts and licences (continued)
-
-* The manicule icon is the U+261E outline from GNU FreeSerif (GPL with font exception).
