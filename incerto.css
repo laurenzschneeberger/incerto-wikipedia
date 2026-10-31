@@ -295,7 +295,8 @@ html.incerto .mw-parser-output table.infobox,
 html.incerto .mw-parser-output table.sidebar {
   font-size: .86em;
   line-height: 1.35;
-  padding: .5em .6em;
+  padding: .9em 1.1em;
+  margin: .3em 0 1.4em 1.8em !important;
   border-collapse: separate;
   border-spacing: 0 .15em;
 }
@@ -323,9 +324,10 @@ html.incerto .mw-parser-output :is(table.infobox, table.sidebar) :is(.infobox-he
 }
 html.incerto .mw-parser-output table.infobox .infobox-label { font-weight: 700; padding-right: .6em; text-align: left; }
 html.incerto .mw-parser-output table.infobox .infobox-caption { font-style: italic; }
-html.incerto .mw-parser-output :is(.ambox, .ombox, .tmbox, .cmbox) { border-left-width: 2px !important; }
+html.incerto .mw-parser-output :is(.ambox, .ombox, .tmbox, .cmbox) { border-left-width: 2px !important; margin-top: .8em; margin-bottom: 1.2em; }
+html.incerto .mw-parser-output :is(.ambox, .ombox, .tmbox, .cmbox) :is(.mbox-text, .mbox-image) { padding: .7em 1em; }
 html.incerto .mw-parser-output :is(.ambox, .ombox, .tmbox, .cmbox) .mbox-text { font-style: italic; }
-html.incerto .mw-parser-output .quotebox { padding: .7em 1em !important; }
+html.incerto .mw-parser-output .quotebox { padding: .9em 1.2em !important; margin: .4em 0 1.2em 1.8em !important; }
 
 /* ---------- small things ---------- */
 html.incerto .mw-parser-output .hatnote {
