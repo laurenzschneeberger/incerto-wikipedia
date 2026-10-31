@@ -7,7 +7,8 @@ A Chrome extension that typesets Wikipedia like Nassim Taleb's *Technical Incert
 
 1. Open `chrome://extensions` and switch on **Developer mode**.
 2. Click **Load unpacked** and pick this repository's folder (clone it or download the ZIP first).
-3. Open any Wikipedia article. Click the toolbar icon (a Goudy "T") to toggle it off and on.
+3. Open any Wikipedia article. The toolbar icon (a Goudy "T") opens the settings: switch it on or off,
+   and pick one of three header styles and one of three styles for the topic tables (navboxes).
 
 ## What it copies from the book
 
@@ -35,3 +36,27 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
 * `fonts/pagella-*.woff2`: TeX Gyre Pagella, GUST Font License (`licenses/`).
 * `fonts/goudy-initialen.woff2`: Goudy Initialen from the CTAN `initials` bundle, the same font
   `\usepackage{GoudyIn}` loads (`licenses/Goudy-Initialen.txt`).
+
+## Beyond the book
+
+* **Bibliography.** References, Notes, Sources, Further reading, External links and similar
+  sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
+  justified. Clicking a label jumps back to where it was cited.
+* **Quieter chrome.** The footer, Donate / Create account / Log in, and the Article / Talk / Read /
+  Edit / View history tabs are gone. Talk, Edit and View history live in the `···` Tools menu,
+  together with the language list (with a filter). Contents is folded into the button beside the
+  title. All dropdowns and the search suggestions are set in Pagella.
+* **Highlights and margin notes.** Select text in an article and choose *Highlight* or *Note*.
+  Notes appear as numbered italic sidenotes in the right margin. Click a highlight to add a note or
+  remove it, click a note to edit it. Everything is kept per article in `chrome.storage.local`, so it
+  is still there when you come back.
+
+### Header styles
+* **Running head**: "Wikipedia" in maroon spaced small caps, italic tagline, hairline below.
+* **Frontispiece**: a Goudy initial W, the rest in small caps, search in a yellow callout, double rule.
+* **Book page**: italic wordmark, the article title as a running head, like a printed page.
+
+### Topic-table styles
+* **Index**: booktabs rules, italic group names, ink links, no colour.
+* **Callout**: the yellow box, bold group names.
+* **Prose**: the table becomes paragraphs with run-in group heads.

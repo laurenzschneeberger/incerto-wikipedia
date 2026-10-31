@@ -1,17 +1,10 @@
-// Toolbar click toggles the typesetting on every open Wikipedia tab.
+// Keeps the toolbar badge in step with the on/off setting chosen in the popup.
 const sync = (on) => {
-  chrome.action.setBadgeText({ text: on ? "" : "off" });
+  chrome.action.setBadgeText({ text: on === false ? "off" : "" });
   chrome.action.setBadgeBackgroundColor({ color: "#8F3838" });
-  chrome.action.setTitle({ title: `Incerto typesetting: ${on ? "on" : "off"} (click to toggle)` });
 };
+const refresh = () => chrome.storage.sync.get({ enabled: true }, ({ enabled }) => sync(enabled));
 
-chrome.action.onClicked.addListener(async () => {
-  const { enabled = true } = await chrome.storage.sync.get("enabled");
-  await chrome.storage.sync.set({ enabled: !enabled });
-  sync(!enabled);
-});
-
-chrome.runtime.onStartup.addListener(async () => {
-  const { enabled = true } = await chrome.storage.sync.get("enabled");
-  sync(enabled);
-});
+chrome.runtime.onStartup.addListener(refresh);
+chrome.runtime.onInstalled.addListener(refresh);
+chrome.storage.onChanged.addListener((c) => { if (c.enabled) sync(c.enabled.newValue); });

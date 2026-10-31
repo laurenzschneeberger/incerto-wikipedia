@@ -363,13 +363,58 @@ html.incerto .mw-parser-output table.wikitable > * > tr > :is(th, td) {
 html.incerto .mw-parser-output table.wikitable > * > tr:first-child > th { border-bottom: .8px solid var(--tw-rule); font-weight: 700; }
 html.incerto .mw-parser-output table.wikitable > caption { font-style: italic; font-weight: 400; padding-bottom: .4em; }
 
-/* footnotes and references: set small like the book's footnotes */
-html.incerto .mw-parser-output :is(.reflist, .references, .refbegin) {
-  font-size: .86em;
-  line-height: 1.35;
+/* ---------- bibliography: "[241] Edward Thorp. A corrected derivation ..." ---------- */
+html.incerto .mw-parser-output :is(.reflist, .refbegin, .mw-references-wrap, .div-col) {
+  font-size: 1em !important;
+  column-width: auto !important;
+  column-count: 1 !important;
+  columns: auto !important;
+  margin: 0;
 }
-html.incerto .mw-parser-output .references > li { margin-bottom: .2em; }
-html.incerto .mw-parser-output .navbox { font-family: var(--tw-serif); }
+html.incerto .mw-parser-output .tw-biblio {
+  list-style: none !important;
+  margin: .4em 0 0;
+  padding: 0;
+  font-size: .95em;
+  line-height: 1.38;
+  text-align: justify;
+  hyphens: auto;
+}
+html.incerto .mw-parser-output .tw-biblio > li {
+  list-style: none !important;
+  margin: 0 0 .85em;
+  padding-left: 1.6em;
+  text-indent: -1.6em;
+  break-inside: avoid;
+}
+html.incerto .mw-parser-output .tw-biblio.tw-numbered > li {
+  position: relative;
+  padding-left: 3.1em;
+  text-indent: 0;
+}
+html.incerto .mw-parser-output .tw-biblio .tw-refnum {
+  position: absolute;
+  left: 0;
+  width: 2.8em;
+  color: var(--tw-ink) !important;
+  font-variant-numeric: oldstyle-nums;
+  text-decoration: none;
+}
+html.incerto .mw-parser-output .tw-biblio .tw-refnum:hover { color: var(--tw-green) !important; }
+.tw-refnum { display: none; }
+html.incerto .tw-refnum { display: inline; }
+html.incerto .mw-parser-output .tw-biblio .mw-cite-backlink { display: none; }
+html.incerto .mw-parser-output .tw-biblio :is(ul, ol) { margin-top: .5em; }
+html.incerto .mw-parser-output .tw-biblio li li { text-indent: 0; padding-left: 0; margin-bottom: .4em; }
+html.incerto .mw-parser-output .tw-biblio :is(cite, .citation) { font-style: normal; }
+html.incerto .mw-parser-output .tw-biblio :is(cite, .citation) i { font-style: italic; }
+html.incerto .mw-parser-output .tw-biblio .reference-accessdate,
+html.incerto .mw-parser-output .tw-biblio .cs1-format { color: var(--tw-muted); }
+html.incerto .mw-parser-output .tw-biblio .cs1-lock-free a,
+html.incerto .mw-parser-output .tw-biblio .cs1-lock-limited a,
+html.incerto .mw-parser-output .tw-biblio .cs1-lock-subscription a,
+html.incerto .mw-parser-output .tw-biblio .cs1-lock-registration a { background-image: none !important; padding-right: 0 !important; }
+html.incerto .mw-parser-output .tw-biblio .cs1-code { font-family: var(--tw-serif); }
 
 /* table of contents */
 html.incerto .vector-toc .vector-toc-level-1 > .vector-toc-link .vector-toc-text {

@@ -1,16 +1,28 @@
 // Incerto for Wikipedia: content script.
 // CSS does most of the work. This adds what CSS cannot: section numbers,
-// the Goudy initial with small caps, figure labels and run-in headings.
+// the Goudy initial with small caps, figure labels, run-in headings,
+// bibliography labels, and moving page actions and languages into Tools.
 (() => {
   "use strict";
   const root = document.documentElement;
   root.classList.add("incerto");
 
-  const setEnabled = (on) => root.classList.toggle("incerto", on !== false);
+  // Settings: on/off plus the header and navbox variants, mirrored onto <html>.
+  const DEFAULTS = { enabled: true, header: "a", navbox: "a" };
+  const apply = (s) => {
+    root.classList.toggle("incerto", s.enabled !== false);
+    root.dataset.twHeader = s.header || DEFAULTS.header;
+    root.dataset.twNavbox = s.navbox || DEFAULTS.navbox;
+  };
+  const settings = { ...DEFAULTS };
+  apply(settings);
   try {
-    chrome.storage.sync.get("enabled", ({ enabled }) => setEnabled(enabled));
-    chrome.storage.onChanged.addListener((c) => { if (c.enabled) setEnabled(c.enabled.newValue); });
-  } catch (_) { /* storage unavailable: stay on */ }
+    chrome.storage.sync.get(DEFAULTS, (s) => { Object.assign(settings, s); apply(settings); });
+    chrome.storage.onChanged.addListener((c) => {
+      for (const k in c) settings[k] = c[k].newValue;
+      apply(settings);
+    });
+  } catch (_) { /* storage unavailable: defaults */ }
 
   // Back matter is unnumbered, like \section* in LaTeX.
   const UNNUMBERED = /^(see also|notes?|references?|citations?|sources|bibliography|further reading|external links|footnotes|works cited|literature|einzelnachweise|weblinks|literatur|siehe auch|anmerkungen|notes et références|références|voir aussi|liens externes|bibliographie)$/i;
@@ -184,6 +196,112 @@
     }
   }
 
+
+  // References, Sources, Further reading ...: set like the book's bibliography,
+  // "[241] Edward Thorp. A corrected derivation ...", hanging, one column.
+  const BIBLIO = /^(notes?|references?|citations?|sources|bibliography|further reading|external links|footnotes|works cited|literature|selected (works|bibliography|publications)|works|publications|primary sources|secondary sources|general (and cited )?references|cited works|einzelnachweise|weblinks|literatur|anmerkungen|notes et références|références|liens externes|bibliographie)$/i;
+  function bibliography(out) {
+    out.querySelectorAll("ol.references").forEach((ol) => {
+      const alpha = !!ol.closest(".reflist-lower-alpha, .notelist") ||
+        /alpha/.test(getComputedStyle(ol).listStyleType);
+      const start = parseInt(ol.getAttribute("start") || "1", 10);
+      ol.classList.add("tw-biblio", "tw-numbered");
+      [...ol.children].forEach((li, i) => {
+        if (li.tagName !== "LI" || li.querySelector(":scope > .tw-refnum")) return;
+        const n = start + i;
+        const label = alpha ? toAlpha(n) : String(n);
+        const back = li.querySelector(".mw-cite-backlink a[href^='#']");
+        const num = document.createElement(back ? "a" : "span");
+        num.className = "tw-refnum";
+        num.textContent = `[${label}]`;
+        if (back) { num.href = back.getAttribute("href"); num.title = "Back to the text"; }
+        li.prepend(num);
+      });
+    });
+    out.querySelectorAll(".mw-heading2 h2, .mw-heading3 h3, h2, h3").forEach((h) => {
+      if (h.closest(SKIP) || !BIBLIO.test(headingText(h))) return;
+      const block = wrapperOf(h);
+      const lvl = headingLevel(h);
+      for (let n = block.nextElementSibling; n; n = n.nextElementSibling) {
+        const hl = n.classList.contains("mw-heading") ? headingLevel(n.querySelector("h2,h3,h4,h5,h6") || n) : headingLevel(n);
+        if (hl && hl <= lvl) break;
+        if (n.matches(".navbox, .navbox-styles, [role=navigation]")) continue;
+        const lists = n.matches("ul") ? [n] : [...n.querySelectorAll("ul")].filter((u) => !u.closest(".navbox, .sidebar, .infobox, table, .hlist"));
+        lists.forEach((u) => u.classList.add("tw-biblio"));
+      }
+    });
+  }
+  const toAlpha = (n) => { let s = ""; while (n > 0) { n--; s = String.fromCharCode(97 + (n % 26)) + s; n = Math.floor(n / 26); } return s; };
+
+  // Talk, Edit and View history go into the Tools menu; so do the languages.
+  function pageChrome() {
+    const title = document.querySelector(".mw-page-title-main, #firstHeading");
+    const head = document.querySelector(".vector-header-end");
+    if (title && head) head.dataset.twTitle = title.textContent.trim();
+
+    const tools = document.getElementById("vector-page-tools");
+    const unpinned = document.getElementById("vector-page-tools-unpinned-container");
+    if (tools && unpinned && !unpinned.contains(tools)) {
+      unpinned.append(tools);
+      root.classList.replace("vector-feature-page-tools-pinned-enabled", "vector-feature-page-tools-pinned-disabled");
+    }
+
+    // Contents: collapsed into the button beside the title, as Wikipedia's own "hide" does.
+    const toc = document.getElementById("vector-toc");
+    const tocSlot = document.getElementById("vector-page-titlebar-toc-unpinned-container");
+    if (toc && tocSlot && !tocSlot.contains(toc)) {
+      tocSlot.append(toc);
+      root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
+    }
+
+    const actions = document.querySelector("#p-cactions .vector-menu-content-list");
+    if (actions) {
+      document.getElementById("p-cactions").classList.remove("emptyPortlet");
+      const talk = document.querySelector("#ca-talk a");
+      if (talk && !document.getElementById("tw-ca-talk")) {
+        const li = document.createElement("li");
+        li.id = "tw-ca-talk";
+        li.className = "mw-list-item tw-added";
+        const a = talk.cloneNode(true);
+        a.removeAttribute("accesskey");
+        li.append(a);
+        actions.prepend(li);
+      }
+    }
+
+    const langLinks = [...document.querySelectorAll("#p-lang-btn .interlanguage-link a, #p-lang .interlanguage-link a")];
+    if (tools && langLinks.length && !document.getElementById("tw-languages")) {
+      const box = document.createElement("div");
+      box.id = "tw-languages";
+      box.className = "vector-menu mw-portlet tw-added";
+      box.innerHTML =
+        '<div class="vector-menu-heading">Languages</div>' +
+        '<div class="vector-menu-content"><details><summary></summary>' +
+        '<input type="search" class="tw-lang-filter" placeholder="Filter languages">' +
+        '<ul class="vector-menu-content-list"></ul></details></div>';
+      box.querySelector("summary").textContent = `Read in ${langLinks.length} other language${langLinks.length > 1 ? "s" : ""}`;
+      const ul = box.querySelector("ul");
+      langLinks.forEach((a) => {
+        const li = document.createElement("li");
+        li.className = "mw-list-item";
+        const c = a.cloneNode(true);
+        c.classList.remove("interlanguage-link-target");
+        li.append(c);
+        ul.append(li);
+      });
+      box.querySelector("input").addEventListener("input", (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        ul.querySelectorAll("li").forEach((li) => {
+          const a = li.firstChild;
+          const hay = `${a.textContent} ${a.title} ${a.lang}`.toLowerCase();
+          li.hidden = q && !hay.includes(q);
+        });
+      });
+      const after = document.getElementById("p-cactions");
+      if (after && tools.contains(after)) after.after(box); else tools.append(box);
+    }
+  }
+
   function typeset() {
     const out = document.querySelector("#mw-content-text .mw-parser-output");
     if (!out || out.dataset.incerto) return;
@@ -194,8 +312,14 @@
     figureLabels(out);
     footnoteMarks(out);
     lettrine(out);
+    bibliography(out);
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", typeset);
-  else typeset();
+  function run() {
+    typeset();
+    pageChrome();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
 })();

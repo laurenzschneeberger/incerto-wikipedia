@@ -1,0 +1,143 @@
+/* ==========================================================================
+   Incerto for Wikipedia: highlights and margin notes
+   ========================================================================== */
+html.incerto { --tw-hl: #fff2a0; --tw-hl-hot: #ffe45c; }
+html.incerto.skin-theme-clientpref-night { --tw-hl: rgba(242, 227, 58, .22); --tw-hl-hot: rgba(242, 227, 58, .4); }
+@media (prefers-color-scheme: dark) {
+  html.incerto.skin-theme-clientpref-os { --tw-hl: rgba(242, 227, 58, .22); --tw-hl-hot: rgba(242, 227, 58, .4); }
+}
+
+html:not(.incerto) .tw-ui { display: none !important; }
+html:not(.incerto) mark.tw-hl { background: none; color: inherit; }
+
+/* the highlight */
+html.incerto mark.tw-hl {
+  background: var(--tw-hl);
+  color: inherit;
+  padding: .04em 0;
+  border-radius: 1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+html.incerto mark.tw-hl.tw-hot,
+html.incerto mark.tw-hl:hover { background: var(--tw-hl-hot); }
+html.incerto mark.tw-hl a { color: inherit; }
+html.incerto .tw-note-mark {
+  font-size: .68em;
+  line-height: 0;
+  vertical-align: super;
+  margin-left: .08em;
+  color: var(--tw-maroon);
+  font-variant-numeric: oldstyle-nums;
+  cursor: pointer;
+}
+
+/* the margin: reserved only once a page has notes */
+html.incerto #mw-content-text { position: relative; }
+html.incerto.tw-has-notes #mw-content-text { padding-right: 15rem; }
+html.incerto.tw-has-notes.tw-notes-outside #mw-content-text { padding-right: 0; }
+html.incerto.tw-notes-outside .tw-margin { right: auto; left: calc(100% + 1.75rem); }
+html.incerto .tw-margin {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 13rem;
+  height: 0;
+}
+html.incerto .tw-sidenote {
+  position: absolute;
+  left: 0;
+  right: 0;
+  font-family: var(--tw-serif);
+  font-size: .86rem;
+  font-style: italic;
+  line-height: 1.32;
+  color: var(--tw-ink);
+  text-align: left;
+  hyphens: auto;
+  padding: .1rem .3rem .15rem;
+  margin-left: -.3rem;
+  border-radius: 2px;
+  cursor: text;
+  transition: background-color .15s;
+}
+html.incerto .tw-sidenote:hover { background: var(--tw-callout-bg); }
+html.incerto .tw-sidenote-num {
+  font-style: normal;
+  color: var(--tw-maroon);
+  font-variant-numeric: oldstyle-nums;
+  margin-right: .35em;
+}
+html.incerto .tw-sidenote-text { white-space: pre-wrap; }
+html.incerto .tw-sidenote-x {
+  position: absolute;
+  top: 0;
+  right: -.9rem;
+  border: none;
+  background: none;
+  padding: 0 .2rem;
+  font: 1rem/1 var(--tw-serif);
+  color: var(--tw-muted);
+  opacity: 0;
+  cursor: pointer;
+}
+html.incerto .tw-sidenote:hover .tw-sidenote-x { opacity: .7; }
+html.incerto .tw-sidenote-x:hover { color: var(--tw-maroon); opacity: 1; }
+html.incerto .tw-sidenote.tw-editing { background: var(--tw-callout-bg); box-shadow: 0 0 0 1.5px var(--tw-callout-rule); }
+html.incerto .tw-sidenote-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: .15rem;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font: italic .86rem/1.32 var(--tw-serif);
+  color: var(--tw-ink);
+  padding: 0;
+}
+
+/* the floating toolbar and the popover on a highlight */
+html.incerto .tw-toolbar {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  align-items: stretch;
+  background: var(--tw-paper);
+  border: .6px solid var(--tw-hair);
+  border-radius: 2px;
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, .3);
+  padding: .15rem;
+  font-family: var(--tw-serif);
+}
+html.incerto .tw-toolbar.tw-show { display: flex; }
+html.incerto .tw-toolbar button {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  border: none;
+  background: none;
+  padding: .3rem .65rem;
+  font-family: var(--tw-serif);
+  font-size: .88rem;
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .07em;
+  color: var(--tw-ink);
+  border-radius: 1px;
+  cursor: pointer;
+}
+html.incerto .tw-toolbar button + button { border-left: .6px solid var(--tw-hair); }
+html.incerto .tw-toolbar button:hover { background: var(--tw-callout-bg); color: var(--tw-maroon); }
+html.incerto .tw-swatch { width: .8rem; height: .8rem; background: var(--tw-hl-hot); border-radius: 1px; }
+html.incerto .tw-pen { font-variant-caps: normal; color: var(--tw-maroon); }
+
+@media (max-width: 760px) {
+  html.incerto.tw-has-notes #mw-content-text { padding-right: 0; }
+  html.incerto.tw-has-notes.tw-notes-outside #mw-content-text { padding-right: 0; }
+html.incerto.tw-notes-outside .tw-margin { right: auto; left: calc(100% + 1.75rem); }
+html.incerto .tw-margin { display: none; }
+}
