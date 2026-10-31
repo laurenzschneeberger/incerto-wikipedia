@@ -30,28 +30,72 @@ html.incerto #vector-page-tools .vector-pinnable-header-unpin-button { display: 
 
 html.incerto .vector-page-titlebar .mw-first-heading { flex-grow: 1; }
 
-/* contents: folded into the titlebar button, never a sidebar */
-html.incerto #vector-toc-pinned-container { display: none !important; }
-html.incerto #vector-page-titlebar-toc { display: block !important; }
+/* contents: a collapsible sidebar (⌥Q), not a button */
+html.incerto #vector-toc-pinned-container,
+html.incerto #vector-page-titlebar-toc,
+html.incerto #vector-sticky-header-toc { display: none !important; }
 html.incerto #vector-toc .vector-pinnable-header-pin-button,
 html.incerto #vector-toc .vector-pinnable-header-unpin-button { display: none !important; }
 html.incerto #vector-toc .vector-toc-link { font-size: .95rem; }
 html.incerto #vector-toc .vector-toc-level-2 .vector-toc-text { font-style: italic; }
 
-/* page toolbar: just the ⋯ button, right-aligned, no rule */
-html.incerto .vector-page-toolbar,
-html.incerto .vector-page-toolbar-container { box-shadow: none; border: none; }
-html.incerto .vector-page-toolbar-container { justify-content: flex-end; }
-html.incerto #vector-page-tools-dropdown-label .vector-dropdown-label-text { font-size: 0; }
-html.incerto #vector-page-tools-dropdown-label .vector-dropdown-label-text::before {
-  content: "\00B7\00B7\00B7";
+#tw-toc-sidebar { display: none; }
+html.incerto #tw-toc-sidebar {
+  display: block;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 200;
+  width: 18rem;
+  box-sizing: border-box;
+  padding: 1.6rem 1.4rem 1.2rem 1.6rem;
+  overflow-y: auto;
+  background: var(--tw-paper);
+  border-right: .6px solid var(--tw-hair);
+  box-shadow: 12px 0 30px -24px rgba(0, 0, 0, .35);
   font-family: var(--tw-serif);
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  line-height: 1;
-  color: var(--tw-ink);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform .22s ease, visibility 0s linear .22s;
 }
+html.incerto.tw-toc-open #tw-toc-sidebar {
+  transform: none;
+  visibility: visible;
+  transition: transform .22s ease;
+}
+html.incerto #tw-toc-sidebar #vector-toc { position: static; max-height: none; overflow: visible; padding: 0; margin: 0; }
+html.incerto #tw-toc-sidebar .vector-pinnable-header { border: none; padding: 0; margin: 0; }
+html.incerto #tw-toc-sidebar .vector-pinnable-header-label {
+  display: block;
+  font-size: .9rem;
+  color: var(--tw-maroon);
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .09em;
+  border-bottom: .6px solid var(--tw-hair);
+  padding-bottom: .25rem;
+  margin-bottom: .6rem;
+}
+html.incerto #tw-toc-sidebar .vector-toc-list-item { margin: 0; }
+html.incerto #tw-toc-sidebar .vector-toc-link { display: block; padding: .18rem 0; }
+html.incerto #tw-toc-sidebar .tw-toc-hint {
+  margin-top: 1.4rem;
+  font-size: .8rem;
+  font-style: italic;
+  color: var(--tw-muted);
+}
+.tw-kbd { font-style: normal; font-size: .82em; color: var(--tw-muted); margin-left: .5em; letter-spacing: .03em; }
+
+/* the page toolbar row is gone: its ⋯ button moves up into the title bar */
+html.incerto .vector-page-toolbar { display: none !important; }
+html.incerto #siteSub { display: none !important; }
+html.incerto .vector-page-titlebar #vector-page-tools-dropdown {
+  margin-left: auto;
+  align-self: flex-start;
+  margin-top: calc((2.15rem * 1.2 - 2rem) / 2);
+}
+html.incerto .vector-page-titlebar #vector-page-tools-dropdown .vector-dropdown-content { left: auto; right: 0; }
 html.incerto #vector-page-tools-dropdown-label::after { display: none !important; }
 
 /* ---------- every dropdown: Tools, main menu, contents, appearance, user ---------- */
@@ -230,8 +274,8 @@ html.incerto .mw-logo { text-decoration: none !important; }
 html.incerto .mw-logo-container { display: flex; flex-direction: column; justify-content: center; color: var(--tw-ink); }
 html.incerto .vector-header .vector-icon { opacity: .7; }
 
-/* Book page: italic wordmark left, the article title as a running head */
-html.incerto .vector-header-container .mw-header { border-bottom: .6px solid var(--tw-ink); }
+/* Book page: italic wordmark, search on the right */
+html.incerto .vector-header-container .mw-header { border-bottom: .6px solid var(--tw-ink); padding-right: 1.5rem; }
 html.incerto .mw-logo-container::before {
   content: "Wikipedia";
   font-size: 1.25rem;
@@ -239,51 +283,43 @@ html.incerto .mw-logo-container::before {
   color: var(--tw-ink);
   letter-spacing: .01em;
 }
-html.incerto .vector-header-end[data-tw-title]::before {
-  content: attr(data-tw-title);
-  order: -1;
-  margin-right: auto;
-  padding-left: 1.5rem;
-  align-self: center;
-  font-size: .95rem;
-  color: var(--tw-maroon);
-  font-variant-caps: small-caps;
-  text-transform: lowercase;
-  letter-spacing: .1em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1 1 auto;
+html.incerto .vector-header-end { flex-grow: 1; justify-content: flex-end; }
+html.incerto .vector-user-links:has(.vector-user-menu-logged-out) { display: none !important; }
+
+/* search: the yellow callout, same rule weight as the infobox, no button */
+html.incerto .vector-header .vector-search-box {
+  flex-grow: 0 !important;
+  width: 17rem;
+  max-width: 17rem;
   min-width: 0;
+  margin-left: auto;
+  margin-right: 0;
 }
-html.incerto .vector-header-end { flex-grow: 1; }
-/* search: the yellow callout, compact */
-html.incerto .vector-header .vector-search-box { flex-grow: 0 !important; width: 17rem; max-width: 17rem; min-width: 0; }
-html.incerto .vector-header .vector-search-box .cdx-search-input--has-end-button,
 html.incerto .vector-header .vector-search-box #searchform {
   background: var(--tw-callout-bg);
-  border: 2px solid var(--tw-callout-rule);
+  border: 2px solid var(--tw-callout-rule) !important;
   border-radius: 4px;
+  box-shadow: none !important;
+  outline: none !important;
+}
+html.incerto .vector-header .vector-search-box #searchform :is(.cdx-search-input__input-wrapper, .cdx-text-input, .cdx-text-input__input, #simpleSearch, #searchInput),
+html.incerto .vector-header .vector-search-box #searchform :is(.cdx-search-input__input-wrapper, .cdx-text-input, .cdx-text-input__input, #simpleSearch, #searchInput):is(:focus, :focus-within, :hover) {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
 }
 html.incerto .vector-header .vector-search-box .cdx-text-input__start-icon,
-html.incerto .vector-header .vector-search-box .cdx-text-input__icon { display: none; }
+html.incerto .vector-header .vector-search-box .cdx-text-input__icon,
+html.incerto .vector-header .vector-search-box .cdx-search-input__end-button,
+html.incerto .vector-header .vector-search-box #searchButton,
+html.incerto .vector-header .vector-search-box #mw-searchButton { display: none !important; }
 html.incerto .vector-header .vector-search-box :is(.cdx-text-input__input, #searchInput) {
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
   padding-left: .55rem !important;
+  padding-right: .55rem !important;
   min-height: 2rem;
   height: 2rem;
-}
-html.incerto .vector-header .vector-search-box .cdx-search-input__end-button {
-  border: none;
-  border-left: 1px solid var(--tw-callout-rule);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  padding: 0 .6rem;
-  min-height: 2rem;
 }
 
 /* ==========================================================================
@@ -378,7 +414,7 @@ html.incerto .mw-logo { display: flex; align-items: center; height: auto; }
 html.incerto .mw-logo-container::before { line-height: 1.2; }
 html.incerto .vector-header-end { align-items: center; }
 
-/* title bar: icon centred on the first line of the title, even if it wraps */
+/* title bar: buttons level with the first line of the title, even if it wraps */
 html.incerto .vector-page-titlebar { display: flex; align-items: flex-start; }
 html.incerto .vector-page-titlebar .mw-first-heading {
   font-size: 2.15rem;
@@ -386,12 +422,7 @@ html.incerto .vector-page-titlebar .mw-first-heading {
   margin: 0;
   padding: 0;
 }
-html.incerto #vector-page-titlebar-toc {
-  align-self: flex-start;
-  margin-top: calc((2.15rem * 1.2 - 2rem) / 2);
-  margin-bottom: 0;
-}
-html.incerto #vector-page-titlebar-toc > .vector-dropdown-label,
+html.incerto #vector-page-tools-dropdown > .vector-dropdown-label,
 html.incerto #vector-main-menu-dropdown > .vector-dropdown-label {
   display: flex;
   align-items: center;
@@ -403,6 +434,72 @@ html.incerto #vector-main-menu-dropdown > .vector-dropdown-label {
   padding-bottom: 0;
   box-sizing: border-box;
 }
-html.incerto .vector-page-titlebar + #siteSub,
-html.incerto #siteSub { margin-top: .35rem; }
 html.incerto #vector-appearance input { accent-color: var(--tw-maroon); }
+
+/* ---------- icons: three quieter sets, chosen in the popup ---------- */
+html.incerto :is(#vector-main-menu-dropdown-label, #vector-page-tools-dropdown-label) > * { display: none !important; }
+html.incerto :is(#vector-main-menu-dropdown-label, #vector-page-tools-dropdown-label) {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--tw-ink);
+  cursor: pointer;
+}
+html.incerto :is(#vector-main-menu-dropdown-label, #vector-page-tools-dropdown-label)::before {
+  display: block;
+  font-family: var(--tw-serif);
+  font-style: normal;
+  line-height: 1;
+  color: currentColor;
+  opacity: .55;
+  transition: opacity .15s, color .15s;
+}
+html.incerto :is(#vector-main-menu-dropdown-label, #vector-page-tools-dropdown-label):hover::before,
+html.incerto .vector-dropdown-checkbox:checked + :is(#vector-main-menu-dropdown-label, #vector-page-tools-dropdown-label)::before {
+  opacity: 1;
+  color: var(--tw-maroon);
+}
+
+/* A. Hairlines: three ragged rules for the menu, three fine points for tools */
+html.incerto[data-tw-icons="a"] :is(#vector-main-menu-dropdown-label, #vector-page-tools-dropdown-label)::before {
+  content: "";
+  width: 18px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--tw-icon) center / contain no-repeat;
+  mask: var(--tw-icon) center / contain no-repeat;
+}
+html.incerto[data-tw-icons="a"] #vector-main-menu-dropdown-label {
+  --tw-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 14'%3E%3Cg stroke='black' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M1 2h16M1 7h11M1 12h14'/%3E%3C/g%3E%3C/svg%3E");
+}
+html.incerto[data-tw-icons="a"] #vector-page-tools-dropdown-label {
+  --tw-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 14'%3E%3Cg fill='black'%3E%3Ccircle cx='3' cy='7' r='1.25'/%3E%3Ccircle cx='9' cy='7' r='1.25'/%3E%3Ccircle cx='15' cy='7' r='1.25'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* B. Pilcrow and therefore: ¶ for the menu, ∴ for tools */
+html.incerto[data-tw-icons="b"] #vector-main-menu-dropdown-label::before { content: "\00B6"; font-size: 1.45rem; }
+html.incerto[data-tw-icons="b"] #vector-page-tools-dropdown-label::before { content: "\2234"; font-size: 1.45rem; }
+
+/* C. Section and double dagger: § for the menu, ‡ for tools */
+html.incerto[data-tw-icons="c"] #vector-main-menu-dropdown-label::before { content: "\00A7"; font-size: 1.45rem; }
+html.incerto[data-tw-icons="c"] #vector-page-tools-dropdown-label::before { content: "\2021"; font-size: 1.45rem; }
+
+/* ---------- article width (slider in Appearance) ---------- */
+html.incerto main#content,
+html.incerto #content.mw-body { max-width: var(--tw-article-width, none); }
+html.incerto #skin-client-prefs-vector-feature-limited-width { display: none !important; }
+html.incerto #tw-width input[type="range"] {
+  width: 100%;
+  margin: .35rem 0 .1rem;
+  accent-color: var(--tw-maroon);
+}
+html.incerto #tw-width .tw-width-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: .78rem;
+  font-style: italic;
+  color: var(--tw-muted);
+}
+html.incerto .vector-header .vector-search-box input::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
+html.incerto .vector-header .vector-search-box .cdx-search-input__clear-icon,
+html.incerto .vector-header .vector-search-box .cdx-text-input__clear-icon { opacity: .45; }

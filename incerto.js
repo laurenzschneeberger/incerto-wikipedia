@@ -7,12 +7,25 @@
   const root = document.documentElement;
   root.classList.add("incerto");
 
-  // On/off, set from the toolbar popup.
-  const apply = (on) => root.classList.toggle("incerto", on !== false);
+  // Settings: on/off and icon set (popup), article width (Appearance slider).
+  const DEFAULTS = { enabled: true, icons: "a", width: 46 };
+  const settings = { ...DEFAULTS };
+  const apply = () => {
+    root.classList.toggle("incerto", settings.enabled !== false);
+    root.dataset.twIcons = settings.icons || DEFAULTS.icons;
+    root.style.setProperty("--tw-article-width", `${settings.width}rem`);
+    const slider = document.querySelector("#tw-width input");
+    if (slider && +slider.value !== +settings.width) slider.value = settings.width;
+  };
+  apply();
   try {
-    chrome.storage.sync.get({ enabled: true }, ({ enabled }) => apply(enabled));
-    chrome.storage.onChanged.addListener((c) => { if (c.enabled) apply(c.enabled.newValue); });
-  } catch (_) { /* storage unavailable: stay on */ }
+    chrome.storage.sync.get(DEFAULTS, (s) => { Object.assign(settings, s); apply(); });
+    chrome.storage.onChanged.addListener((c, area) => {
+      if (area !== "sync") return;
+      for (const k in c) if (k in DEFAULTS) settings[k] = c[k].newValue;
+      apply();
+    });
+  } catch (_) { /* storage unavailable: defaults */ }
 
   // Back matter is unnumbered, like \section* in LaTeX.
   const UNNUMBERED = /^(see also|notes?|references?|citations?|sources|bibliography|further reading|external links|footnotes|works cited|literature|einzelnachweise|weblinks|literatur|siehe auch|anmerkungen|notes et références|références|voir aussi|liens externes|bibliographie)$/i;
@@ -223,11 +236,26 @@
   }
   const toAlpha = (n) => { let s = ""; while (n > 0) { n--; s = String.fromCharCode(97 + (n % 26)) + s; n = Math.floor(n / 26); } return s; };
 
+  const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const KEY_LABEL = IS_MAC ? "\u2325Q" : "Alt+Q";
+  function toggleToc(force) {
+    const open = typeof force === "boolean" ? force : !root.classList.contains("tw-toc-open");
+    root.classList.toggle("tw-toc-open", open);
+    try { chrome.storage.local.set({ tocOpen: open }); } catch (_) {}
+  }
+  document.addEventListener("keydown", (e) => {
+    if (!root.classList.contains("incerto")) return;
+    if (e.code === "KeyQ" && e.altKey && !e.ctrlKey && !e.metaKey) {
+      const t = e.target;
+      if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+      e.preventDefault();
+      toggleToc();
+    } else if (e.key === "Escape" && root.classList.contains("tw-toc-open")) toggleToc(false);
+  }, true);
+  try { chrome.storage.local.get({ tocOpen: false }, ({ tocOpen }) => root.classList.toggle("tw-toc-open", tocOpen)); } catch (_) {}
+
   // Talk, Edit and View history go into the Tools menu; so do the languages.
   function pageChrome() {
-    const title = document.querySelector(".mw-page-title-main, #firstHeading");
-    const head = document.querySelector(".vector-header-end");
-    if (title && head) head.dataset.twTitle = title.textContent.trim();
 
     const tools = document.getElementById("vector-page-tools");
     const unpinned = document.getElementById("vector-page-tools-unpinned-container");
@@ -236,13 +264,26 @@
       root.classList.replace("vector-feature-page-tools-pinned-enabled", "vector-feature-page-tools-pinned-disabled");
     }
 
-    // Contents: collapsed into the button beside the title, as Wikipedia's own "hide" does.
+    // Contents: a sidebar that slides in from the left, toggled with ⌥Q / Alt+Q.
     const toc = document.getElementById("vector-toc");
-    const tocSlot = document.getElementById("vector-page-titlebar-toc-unpinned-container");
-    if (toc && tocSlot && !tocSlot.contains(toc)) {
-      tocSlot.append(toc);
+    if (toc && !document.getElementById("tw-toc-sidebar")) {
+      const side = document.createElement("aside");
+      side.id = "tw-toc-sidebar";
+      side.setAttribute("aria-label", "Contents");
+      side.append(toc);
+      const hint = document.createElement("div");
+      hint.className = "tw-toc-hint";
+      hint.textContent = `${KEY_LABEL} to close`;
+      side.append(hint);
+      document.body.append(side);
       root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
+      side.addEventListener("click", (e) => { if (e.target.closest("a.vector-toc-link") && innerWidth < 1100) toggleToc(false); });
     }
+
+    // The ⋯ button moves up into the title bar, level with the title.
+    const toolsDropdown = document.getElementById("vector-page-tools-dropdown");
+    const titlebar = document.querySelector(".vector-page-titlebar");
+    if (toolsDropdown && titlebar && !titlebar.contains(toolsDropdown)) titlebar.append(toolsDropdown);
 
     // Appearance (text size, width, colour) moves into the same menu.
     const appearance = document.getElementById("vector-appearance");
@@ -251,7 +292,44 @@
       root.classList.replace("vector-feature-appearance-pinned-clientpref-1", "vector-feature-appearance-pinned-clientpref-0");
     }
 
+    // Article width slider, at the top of Appearance.
+    const appearanceBox = document.getElementById("vector-appearance") || tools;
+    if (appearanceBox && !document.getElementById("tw-width")) {
+      const box = document.createElement("div");
+      box.id = "tw-width";
+      box.className = "vector-menu mw-portlet tw-added";
+      box.innerHTML =
+        '<div class="vector-menu-heading">Article width</div>' +
+        '<div class="vector-menu-content"><input type="range" min="30" max="80" step="1" aria-label="Article width">' +
+        '<div class="tw-width-ends"><span>narrow</span><span>wide</span></div></div>';
+      const input = box.querySelector("input");
+      input.value = settings.width;
+      let t;
+      input.addEventListener("input", () => {
+        settings.width = +input.value;
+        root.style.setProperty("--tw-article-width", `${settings.width}rem`);
+        clearTimeout(t);
+        t = setTimeout(() => chrome.storage.sync.set({ width: settings.width }), 250);
+      });
+      const header = appearanceBox.querySelector(":scope > .vector-pinnable-header");
+      if (header) header.after(box); else appearanceBox.prepend(box);
+    }
+
     const actions = document.querySelector("#p-cactions .vector-menu-content-list");
+    if (actions && toc && !document.getElementById("tw-ca-toc")) {
+      const li = document.createElement("li");
+      li.id = "tw-ca-toc";
+      li.className = "mw-list-item tw-added";
+      li.innerHTML = '<a href="#"><span>Contents</span><span class="tw-kbd"></span></a>';
+      li.querySelector(".tw-kbd").textContent = KEY_LABEL;
+      li.querySelector("a").addEventListener("click", (e) => {
+        e.preventDefault();
+        const cb = document.getElementById("vector-page-tools-dropdown-checkbox");
+        if (cb) cb.checked = false;
+        toggleToc();
+      });
+      actions.prepend(li);
+    }
     if (actions) {
       document.getElementById("p-cactions").classList.remove("emptyPortlet");
       const talk = document.querySelector("#ca-talk a");
@@ -265,6 +343,8 @@
         actions.prepend(li);
       }
     }
+    const tocItem = document.getElementById("tw-ca-toc");
+    if (actions && tocItem) actions.prepend(tocItem);
 
     const langLinks = [...document.querySelectorAll("#p-lang-btn .interlanguage-link a, #p-lang .interlanguage-link a")];
     if (tools && langLinks.length && !document.getElementById("tw-languages")) {

@@ -101,12 +101,19 @@
     if (column.querySelector(".tw-editing")) return; // don't yank the textarea away mid-sentence
     column.innerHTML = "";
     const noted = store.filter((h) => h.note && root.querySelector(`mark.tw-hl[data-tw-id="${h.id}"]`));
-    document.documentElement.classList.toggle("tw-has-notes", noted.length > 0);
+    document.documentElement.classList.toggle("tw-has-notes", noted.length > 0); // marker only, no layout change
     if (!noted.length) return;
-    // Wide window: notes live in the empty space right of the article.
-    // Narrow window: the article gives up a margin for them.
+    // Notes live in the page's own right margin; the article is never narrowed.
+    // If the margin is too tight, the margin column hides and notes show on hover.
     const room = document.documentElement.clientWidth - column.parentElement.getBoundingClientRect().right;
-    document.documentElement.classList.toggle("tw-notes-outside", room >= 300);
+    const width = Math.min(240, room - 28 - 16);
+    const fits = width >= 140;
+    document.documentElement.classList.toggle("tw-notes-hidden", !fits);
+    column.style.width = `${Math.max(0, width)}px`;
+    root.querySelectorAll("mark.tw-hl").forEach((m) => {
+      const h = store.find((x) => x.id === m.dataset.twId);
+      if (h && h.note && !fits) m.title = h.note; else m.removeAttribute("title");
+    });
     const host = column.parentElement.getBoundingClientRect();
     const items = noted
       .map((h) => ({ h, top: root.querySelector(`mark.tw-hl[data-tw-id="${h.id}"]`).getBoundingClientRect().top - host.top }))

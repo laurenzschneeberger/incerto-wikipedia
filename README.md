@@ -7,7 +7,8 @@ A Chrome extension that typesets Wikipedia like Nassim Taleb's *Technical Incert
 
 1. Open `chrome://extensions` and switch on **Developer mode**.
 2. Click **Load unpacked** and pick this repository's folder (clone it or download the ZIP first).
-3. Open any Wikipedia article. The toolbar icon (a Goudy "T") switches the typesetting on or off.
+3. Open any Wikipedia article. The toolbar icon (a Goudy "T") switches the typesetting on or off and
+   picks one of three quiet icon sets for the menus (hairlines, ¶ and ∴, or § and ‡).
 
 ## What it copies from the book
 
@@ -41,14 +42,15 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
 * **Bibliography.** References, Notes, Sources, Further reading, External links and similar
   sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
   justified. Clicking a label jumps back to where it was cited.
-* **Header.** Italic "Wikipedia" on the left, the article title as a small-caps running head, search
-  in a compact yellow callout.
+* **Header.** Italic "Wikipedia" on the left, search in a compact yellow callout on the right.
+* **Title row.** The title and the `···` menu share one line. Contents opens as a sidebar from the
+  left with `⌥Q` (Alt+Q on Windows and Linux), or from the menu.
+* **Article width.** A slider under Appearance in the `···` menu.
 * **Topic tables.** Navboxes become yellow callouts with bold group names.
 * **Quieter chrome.** The footer, Donate / Create account / Log in, and the Article / Talk / Read /
   Edit / View history tabs are gone. Talk, Edit and View history live in the `···` Tools menu,
-  together with the language list (with a filter) and the Appearance settings. Contents is folded into the button beside the
-  title. All dropdowns and the search suggestions are set in Pagella.
+  together with the language list (with a filter) and the Appearance settings. All dropdowns and the search suggestions are set in Pagella.
 * **Highlights and margin notes.** Select text in an article and choose *Highlight* or *Note*.
-  Notes appear as numbered italic sidenotes in red in the right margin. Click a highlight to add a note or
+  Notes appear as numbered italic sidenotes in red in the page margin to the right of the article; the text never moves to make room. Narrow the article with the width slider for more margin. If there is no room, notes show when you hover the highlight. Click a highlight to add a note or
   remove it, click a note to edit it. Everything is kept per article in `chrome.storage.local`, so it
   is still there when you come back.

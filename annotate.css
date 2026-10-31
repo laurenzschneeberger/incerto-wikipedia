@@ -34,18 +34,16 @@ html.incerto .tw-note-mark {
   cursor: pointer;
 }
 
-/* the margin: reserved only once a page has notes */
+/* the margin: the space to the right of the article; the text never moves */
 html.incerto #mw-content-text { position: relative; }
-html.incerto.tw-has-notes #mw-content-text { padding-right: 17rem; }
-html.incerto.tw-has-notes.tw-notes-outside #mw-content-text { padding-right: 0; }
-html.incerto.tw-notes-outside .tw-margin { right: auto; left: calc(100% + 1.75rem); }
 html.incerto .tw-margin {
   position: absolute;
   top: 0;
-  right: 0;
+  left: calc(100% + 1.75rem);
   width: 15rem;
   height: 0;
 }
+html.incerto.tw-notes-hidden .tw-margin { display: none; }
 html.incerto .tw-sidenote {
   position: absolute;
   left: 0;
@@ -135,10 +133,3 @@ html.incerto .tw-toolbar button + button { border-left: .6px solid var(--tw-hair
 html.incerto .tw-toolbar button:hover { background: var(--tw-callout-bg); color: var(--tw-maroon); }
 html.incerto .tw-swatch { width: .8rem; height: .8rem; background: var(--tw-hl-hot); border-radius: 1px; }
 html.incerto .tw-pen { font-variant-caps: normal; color: var(--tw-maroon); }
-
-@media (max-width: 760px) {
-  html.incerto.tw-has-notes #mw-content-text { padding-right: 0; }
-  html.incerto.tw-has-notes.tw-notes-outside #mw-content-text { padding-right: 0; }
-html.incerto.tw-notes-outside .tw-margin { right: auto; left: calc(100% + 1.75rem); }
-html.incerto .tw-margin { display: none; }
-}
