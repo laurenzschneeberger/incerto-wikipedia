@@ -313,10 +313,10 @@
     // Contents: replaced by the left column of the stacked desk (stack.js).
     root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
 
-    // The ‡ button moves up into the title bar, level with the title.
+    // The ‡ button lives in the top row, after the search box.
     const toolsDropdown = document.getElementById("vector-page-tools-dropdown");
-    const titlebar = document.querySelector(".vector-page-titlebar");
-    if (toolsDropdown && titlebar && !titlebar.contains(toolsDropdown)) titlebar.append(toolsDropdown);
+    const headerEnd = document.querySelector(".vector-header-end");
+    if (toolsDropdown && headerEnd && !headerEnd.contains(toolsDropdown)) headerEnd.append(toolsDropdown);
 
     // Wikipedia's own Appearance panel is replaced by ours (it renders lazily and unreliably once moved).
     root.classList.replace("vector-feature-appearance-pinned-clientpref-1", "vector-feature-appearance-pinned-clientpref-0");

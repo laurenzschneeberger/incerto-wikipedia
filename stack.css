@@ -95,7 +95,7 @@ html.incerto.tw-stacked #tw-stack {
   right: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  overscroll-behavior-x: none; /* our own bounce; also stops two-finger swipe = Back */
+  overscroll-behavior-x: contain; /* native scrolling; a two-finger swipe at the edge doesn't go Back */
   scrollbar-width: thin;
   z-index: 1;
 }
@@ -103,7 +103,6 @@ html.incerto #tw-stack-track {
   display: flex;
   height: 100%;
   width: max-content;
-  will-change: transform;
 }
 html.incerto .tw-col {
   position: sticky;
@@ -112,6 +111,7 @@ html.incerto .tw-col {
   height: 100%;
   box-sizing: border-box;
   background: var(--tw-paper);
+  contain: layout paint style;
   transition: box-shadow .2s;
 }
 html.incerto .tw-col + .tw-col { border-left: .6px solid var(--tw-hair); }
@@ -126,7 +126,7 @@ html.incerto .tw-col-inner {
   scrollbar-width: thin;
   transition: opacity .18s;
 }
-html.incerto .tw-col.tw-obscured .tw-col-inner { opacity: 0; pointer-events: none; }
+html.incerto .tw-col.tw-obscured .tw-col-inner { visibility: hidden; } /* covered pages are not painted at all */
 
 /* the base page brings Wikipedia's own markup along */
 html.incerto .tw-col main#content,
@@ -213,4 +213,10 @@ html.incerto .tw-col a.tw-link-open { background: var(--tw-faint); border-radius
 @media (max-width: 1000px) {
   html.incerto.tw-stacked { --tw-contents-w: 0px; }
   html.incerto.tw-stacked #tw-contents { display: none; }
+}
+
+/* long tails of an article (references, topic tables) are only laid out when scrolled near */
+html.incerto .tw-col .mw-parser-output > :is(.navbox, .reflist, .refbegin, .navbox-styles + .navbox) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
 }

@@ -42,12 +42,10 @@ html.incerto #vector-toc .vector-toc-level-2 .vector-toc-text { font-style: ital
 /* the page toolbar row is gone: its ⋯ button moves up into the title bar */
 html.incerto .vector-page-toolbar { display: none !important; }
 html.incerto #siteSub { display: none !important; }
-html.incerto .vector-page-titlebar #vector-page-tools-dropdown {
-  margin-left: auto;
-  align-self: flex-start;
-  margin-top: calc((2.15rem * 1.2 - 2rem) / 2);
-}
-html.incerto .vector-page-titlebar #vector-page-tools-dropdown .vector-dropdown-content { left: auto; right: 0; }
+/* ‡ sits in the top row, after the search box; its menu drops below it */
+html.incerto .vector-header #vector-page-tools-dropdown { margin-left: .5rem; align-self: center; }
+html.incerto .vector-header #vector-page-tools-dropdown .vector-dropdown-content { left: auto; right: 0; top: 100%; }
+html.incerto .vector-header-container { position: relative; z-index: 20; }
 html.incerto #vector-page-tools-dropdown-label::after { display: none !important; }
 
 /* ---------- every dropdown: Tools, main menu, contents, appearance, user ---------- */
@@ -221,7 +219,9 @@ html.incerto .catlinks a { color: var(--tw-muted) !important; }
    ========================================================================== */
 html.incerto .vector-header,
 html.incerto .mw-header { font-family: var(--tw-serif); }
-html.incerto .mw-logo :is(.mw-logo-icon, .mw-logo-wordmark, .mw-logo-tagline) { display: none; }
+html.incerto .mw-logo :is(.mw-logo-wordmark, .mw-logo-tagline) { display: none; }
+/* the Wikipedia globe stays, beside the italic wordmark */
+html.incerto .mw-logo .mw-logo-icon { display: block; width: 2.1rem; height: 2.1rem; margin-right: .55rem; flex: none; }
 html.incerto .mw-logo { text-decoration: none !important; }
 html.incerto .mw-logo-container { display: flex; flex-direction: column; justify-content: center; color: var(--tw-ink); }
 html.incerto .vector-header .vector-icon { opacity: .7; }

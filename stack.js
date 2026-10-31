@@ -1,7 +1,7 @@
 // Incerto for Wikipedia: stacked pages.
 // Articles open side by side, like pages shuffled on a desk: clicking a link opens
 // the article in a new column to the right. Columns stack into spines as you scroll,
-// each column scrolls on its own, and the desk bounces a little at either end.
+// each column scrolls on its own; scrolling itself is left entirely to the browser.
 // Open columns are kept in the URL (?stacked=Title&stacked=Title) for reloads and Back.
 (() => {
   "use strict";
@@ -30,7 +30,6 @@
   }
 
   // ---------- geometry ----------
-  const colWidth = () => (TW.columns[0] ? TW.columns[0].el.offsetWidth : 700);
   function setTop() {
     const head = document.querySelector(".vector-header-container") || document.querySelector(".mw-header");
     html.style.setProperty("--tw-top", `${head ? Math.max(0, head.getBoundingClientRect().bottom) : 0}px`);
@@ -48,82 +47,60 @@
     onScroll();
   }
   // Spines and shadows: which columns are covered by their right-hand neighbour?
-  function onScroll() {
-    const sr = scroller.getBoundingClientRect();
-    const W = colWidth();
+  // Worked out from the scroll offset alone (no layout reads), once per frame.
+  let colW = 0;
+  const measure = () => { colW = TW.columns[0] ? TW.columns[0].el.offsetWidth : 700; };
+  function visualLeft(i, n, sl, view) {
+    const natural = i * colW - sl;
+    return Math.min(Math.max(natural, i * SPINE), view - (n - i) * SPINE);
+  }
+  const setClass = (el, cls, on) => { if (el.classList.contains(cls) !== on) el.classList.toggle(cls, on); };
+  function updateStack() {
+    if (!colW) measure();
+    const n = TW.columns.length, sl = scroller.scrollLeft, view = scroller.clientWidth;
+    const lefts = TW.columns.map((_, i) => visualLeft(i, n, sl, view));
     TW.columns.forEach((c, i) => {
-      const r = c.el.getBoundingClientRect();
-      const next = TW.columns[i + 1];
-      const nr = next && next.el.getBoundingClientRect();
-      // A page turns into its spine only once it is (almost) fully covered.
-      const coveredLeft = nr ? nr.left - r.left < SPINE * 1.6 : false;
-      const natural = i * W - scroller.scrollLeft + sr.left;
-      const stuckRight = natural - r.left > W - SPINE * 1.6;
-      c.el.classList.toggle("tw-obscured", coveredLeft || stuckRight);
-      c.el.classList.toggle("tw-overlapping", i > 0 && TW.columns[i - 1] &&
-        r.left < TW.columns[i - 1].el.getBoundingClientRect().right - 1);
+      const natural = i * colW - sl;
+      const coveredLeft = i < n - 1 && lefts[i + 1] - lefts[i] < SPINE * 1.6;
+      const stuckRight = natural - lefts[i] > colW - SPINE * 1.6;
+      setClass(c.el, "tw-obscured", coveredLeft || stuckRight);
+      setClass(c.el, "tw-overlapping", i > 0 && lefts[i] < lefts[i - 1] + colW - 1);
     });
   }
-  // Scroll the desk just enough to show column i in full.
+  let scrollQueued = false;
+  function onScroll() {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(() => { scrollQueued = false; updateStack(); });
+  }
+
+  // Scroll the desk just enough to show column i in full, with a quick eased slide.
+  let slide = 0;
+  function glide(to, ms = 240) {
+    cancelAnimationFrame(slide);
+    const from = scroller.scrollLeft, d = to - from, t0 = performance.now();
+    if (Math.abs(d) < 1) return;
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / ms);
+      scroller.scrollLeft = from + d * ease(t);
+      if (t < 1) slide = requestAnimationFrame(step);
+    };
+    slide = requestAnimationFrame(step);
+  }
   function reveal(i, smooth = true) {
-    const c = TW.columns[i];
-    if (!c) return;
-    const W = colWidth();
-    const x = i * W; // natural position (offsetLeft reports the stuck one)
-    const lo = x + W - scroller.clientWidth; // leftmost scroll that shows its right edge
+    if (!TW.columns[i]) return;
+    measure();
+    const x = i * colW;
+    const lo = x + colW - scroller.clientWidth; // leftmost scroll that shows its right edge
     const hi = x - i * SPINE; // rightmost scroll before it sticks under earlier spines
     let target = scroller.scrollLeft;
     if (target < lo) target = lo;
     if (target > hi) target = hi;
-    target = Math.max(0, target);
-    if (Math.abs(target - scroller.scrollLeft) > 1) scroller.scrollTo({ left: target, behavior: smooth ? "smooth" : "auto" });
+    target = Math.max(0, Math.min(target, scroller.scrollWidth - scroller.clientWidth));
+    if (smooth) glide(target); else scroller.scrollLeft = target;
   }
   TW.reveal = (col) => reveal(TW.columns.indexOf(col));
-
-  // ---------- the elastic bounce at either end ----------
-  let over = 0, vel = 0, anim = 0, idle = 0;
-  const paint = () => { track.style.transform = over ? `translate3d(${over.toFixed(2)}px,0,0)` : ""; };
-  function release() {
-    let last = performance.now();
-    const k = 520, c = 2 * Math.sqrt(k) * 0.88; // stiff and nearly critically damped: a quick settle, barely any rebound
-    vel = 0;
-    const step = (now) => {
-      const dt = Math.min(0.032, (now - last) / 1000);
-      last = now;
-      vel += (-k * over - c * vel) * dt;
-      over += vel * dt;
-      if (Math.abs(over) < 0.25 && Math.abs(vel) < 4) { over = 0; paint(); anim = 0; return; }
-      paint();
-      anim = requestAnimationFrame(step);
-    };
-    anim = requestAnimationFrame(step);
-  }
-  function scrollsItself(el, dx) {
-    for (let n = el; n && n !== scroller; n = n.parentElement) {
-      if (n.scrollWidth > n.clientWidth + 1) {
-        const s = getComputedStyle(n).overflowX;
-        if ((s === "auto" || s === "scroll") &&
-          ((dx > 0 && n.scrollLeft < n.scrollWidth - n.clientWidth - 1) || (dx < 0 && n.scrollLeft > 0))) return true;
-      }
-    }
-    return false;
-  }
-  function onWheel(e) {
-    const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.shiftKey ? e.deltaY : 0;
-    if (!dx || scrollsItself(e.target, dx)) return;
-    const max = scroller.scrollWidth - scroller.clientWidth;
-    const atStart = scroller.scrollLeft <= 0.5 && dx < 0;
-    const atEnd = scroller.scrollLeft >= max - 0.5 && dx > 0;
-    if (!atStart && !atEnd && !over) return;
-    e.preventDefault();
-    if (anim) { cancelAnimationFrame(anim); anim = 0; }
-    const limit = 28; // at most a few millimetres of give
-    const next = over - dx * 0.13 * (1 - Math.min(Math.abs(over) / limit, 0.95));
-    over = (over > 0 && next < 0) || (over < 0 && next > 0) ? 0 : Math.max(-limit, Math.min(limit, next));
-    paint();
-    clearTimeout(idle);
-    idle = setTimeout(release, 45);
-  }
 
   // ---------- columns ----------
   function frame(title) {
@@ -173,34 +150,76 @@
   function wire(col) {
     col.el.querySelector(".tw-col-close").addEventListener("click", (e) => { e.stopPropagation(); close(col); });
     col.el.querySelector(".tw-col-spine").addEventListener("click", () => { reveal(TW.columns.indexOf(col)); focus(col); });
-    col.inner.addEventListener("scroll", () => { if (col === focused) trackActive(); }, { passive: true });
+    let q = false;
+    col.inner.addEventListener("scroll", () => {
+      if (col !== focused || q) return;
+      q = true;
+      requestAnimationFrame(() => { q = false; trackActive(); });
+    }, { passive: true });
     col.el.addEventListener("mousedown", () => focus(col));
   }
 
   let hookId = 0;
-  async function load(col, hash) {
+  // Pages are fetched once and kept: hovering or pressing a link starts the fetch,
+  // so by the time the click lands the article is usually already here.
+  const cache = new Map();
+  function fetchPage(title) {
+    const k = slug(title).toLowerCase();
+    if (cache.has(k)) return cache.get(k);
     const url = `/w/api.php?action=parse&format=json&formatversion=2&redirects=1&prop=text%7Cdisplaytitle` +
-      `&disableeditsection=1&disabletoc=1&page=${encodeURIComponent(display(col.title))}`;
+      `&disableeditsection=1&disabletoc=1&disablelimitreport=1&page=${encodeURIComponent(display(title))}`;
+    const p = fetch(url, { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error || !data.parse) throw new Error(data.error ? data.error.info : "No page");
+        return data.parse;
+      });
+    p.catch(() => cache.delete(k));
+    cache.set(k, p);
+    if (cache.size > 40) cache.delete(cache.keys().next().value);
+    return p;
+  }
+  function linkTitle(a) {
+    if (!a || a.classList.contains("new") || a.classList.contains("mw-file-description") || a.classList.contains("image")) return null;
+    let u;
+    try { u = new URL(a.href); } catch (_) { return null; }
+    if (u.host !== location.host || !u.pathname.startsWith("/wiki/") || u.search) return null;
+    const title = decodeURIComponent(u.pathname.slice(6));
+    if (!title || NON_ARTICLE.test(display(title))) return null;
+    return { title, hash: u.hash ? decodeURIComponent(u.hash.slice(1)) : "" };
+  }
+  let hoverTimer = 0;
+  function prefetchFrom(e, delay) {
+    const a = e.target.closest && e.target.closest("a[href]");
+    if (!a || !scroller.contains(a) || a.closest(".tw-ui, .vector-dropdown")) return;
+    const t = linkTitle(a);
+    if (!t || TW.columns.some((c) => same(c.title, t.title))) return;
+    clearTimeout(hoverTimer);
+    if (delay) hoverTimer = setTimeout(() => fetchPage(t.title).catch(() => {}), delay);
+    else fetchPage(t.title).catch(() => {});
+  }
+
+  async function load(col, hash) {
     const body = col.inner.querySelector(".tw-col-body");
     try {
-      const res = await fetch(url, { credentials: "same-origin" });
-      const data = await res.json();
-      if (data.error || !data.parse) throw new Error(data.error ? data.error.info : "No page");
+      const page = await fetchPage(col.title);
       if (!col.el.isConnected) return;
-      col.title = slug(data.parse.title);
+      col.title = slug(page.title);
       col.key = keyFor(col.title);
-      const shown = new DOMParser().parseFromString(data.parse.displaytitle || data.parse.title, "text/html").body.textContent;
+      const shown = new DOMParser().parseFromString(page.displaytitle || page.title, "text/html").body.textContent;
       col.inner.querySelector(".mw-page-title-main").textContent = shown;
       col.el.querySelector(".tw-col-spine span").textContent = shown;
-      const tmp = document.createElement("div");
-      tmp.innerHTML = data.parse.text;
-      const out = tmp.querySelector(".mw-parser-output") || tmp;
-      if (!out.classList.contains("mw-parser-output")) out.classList.add("mw-parser-output");
+      // Build and typeset off-screen, then insert once.
+      const tpl = document.createElement("template");
+      tpl.innerHTML = page.text;
+      const frag = tpl.content;
+      let out = frag.querySelector(".mw-parser-output");
+      if (!out) { out = document.createElement("div"); out.className = "mw-parser-output"; out.append(frag); }
+      out.querySelectorAll("img").forEach((img) => { img.loading = "lazy"; img.decoding = "async"; });
       out.id = `tw-col-content-${++hookId}`;
-      body.textContent = "";
-      body.append(out);
-      col.root = out;
       if (TW.typeset) TW.typeset(out);
+      body.replaceChildren(out);
+      col.root = out;
       document.dispatchEvent(new CustomEvent("tw-content", { detail: out.id })); // let Wikipedia's own scripts (collapsibles…) run
       syncUrl(false);
       emit("column", col);
@@ -298,14 +317,10 @@
       if (scrollToId(col, decodeURIComponent(href.slice(1)))) e.preventDefault();
       return;
     }
-    let u;
-    try { u = new URL(a.href); } catch (_) { return; }
-    if (u.host !== location.host || !u.pathname.startsWith("/wiki/") || u.search) return;
-    if (a.classList.contains("new") || a.classList.contains("mw-file-description") || a.classList.contains("image")) return;
-    const title = decodeURIComponent(u.pathname.slice(6));
-    if (!title || NON_ARTICLE.test(display(title))) return;
+    const t = linkTitle(a);
+    if (!t) return;
     e.preventDefault();
-    const hash = u.hash ? decodeURIComponent(u.hash.slice(1)) : "";
+    const { title, hash } = t;
     if (same(title, col.title)) { if (hash) scrollToId(col, hash); return; }
     col.root && col.root.querySelectorAll("a.tw-link-open").forEach((x) => x.classList.remove("tw-link-open"));
     a.classList.add("tw-link-open");
@@ -405,9 +420,11 @@
     emit("column", base);
 
     scroller.addEventListener("scroll", onScroll, { passive: true });
-    scroller.addEventListener("wheel", onWheel, { passive: false });
     scroller.addEventListener("click", onClick);
-    addEventListener("resize", () => { setTop(); onScroll(); });
+    scroller.addEventListener("pointerover", (e) => prefetchFrom(e, 90), { passive: true });
+    scroller.addEventListener("pointerout", () => clearTimeout(hoverTimer), { passive: true });
+    scroller.addEventListener("pointerdown", (e) => prefetchFrom(e, 0), { passive: true });
+    addEventListener("resize", () => { setTop(); measure(); onScroll(); });
     addEventListener("popstate", () => restore(false));
 
     const s = document.createElement("script");

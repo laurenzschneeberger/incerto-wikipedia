@@ -42,16 +42,19 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
 * **A desk of pages.** Clicking a link to another article opens it in a new column to the right
   instead of leaving the page, the way Andy Matuschak's working notes work. Each column scrolls on its
   own; as you scroll the desk sideways, earlier pages slide under later ones and shrink to a spine with
-  their title set vertically (click a spine to bring it back). Scrolling past either end gives a small
-  elastic bounce. A faint grey × at the top left of each page closes it (it darkens when the pointer comes
+  their title set vertically (click a spine to bring it back). A faint grey × at the top left of each page closes it (it darkens when the pointer comes
   near). The open pages are kept in the address (`?stacked=…`), so reload and Back work.
 * **Contents.** The left column lists the sections of the page you are reading. The ‹ chevron
   folds it to a thin rail (› or a click on the rail opens it again); this is remembered.
 * **Bibliography.** References, Notes, Sources, Further reading, External links and similar
   sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
   justified. Clicking a label jumps back to where it was cited.
-* **Header.** Italic "Wikipedia" on the left, search in a compact yellow callout on the right.
-* **Title row.** The title, the ☞ notebook and the ‡ menu share one line; ¶ opens Wikipedia's main menu.
+* **Header.** ¶ (Wikipedia's main menu), the Wikipedia globe and an italic wordmark on the left; search
+  in a compact yellow callout and the ‡ menu on the right.
+* **Title row.** The title and the ☞ notebook share one line.
+* **Speed.** Hovering or pressing a link starts loading the article, so it usually opens at once;
+  pages are cached, typeset off-screen and inserted in one go, images load lazily, and covered
+  pages aren't painted.
 * **The ‡ menu.** Talk, Edit, View history, the language list and Appearance: page width, text
   size and colour.
 * **Topic tables.** Navboxes become yellow callouts with bold group names.

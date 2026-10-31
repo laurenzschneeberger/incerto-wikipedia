@@ -53,15 +53,18 @@
     }
     return best;
   }
-  function wrap(doc, h) {
-    const idx = index(doc);
-    const s = locate(idx, h);
-    if (s < 0) return false;
-    const e = s + h.text.length;
+  // Wrap text offsets [s, e) of an index in <mark>s. Splitting keeps every text node's
+  // start offset intact for the text before it, so one index serves many wraps
+  // as long as they are applied from the end of the article backwards.
+  function wrapAt(idx, s, e, id) {
+    let lo = 0, hi = idx.nodes.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (idx.nodes[mid].start <= s) lo = mid; else hi = mid - 1; }
     let any = false;
-    for (const { node, start } of idx.nodes) {
+    for (let k = lo; k < idx.nodes.length; k++) {
+      const { node, start } = idx.nodes[k];
+      if (start >= e) break;
       const end = start + node.data.length;
-      if (end <= s || start >= e) continue;
+      if (end <= s) continue;
       if (NO_WRAP_PARENT.test(node.parentElement.tagName) && !node.data.trim()) continue;
       let t = node;
       const a = Math.max(0, s - start), b = Math.min(node.data.length, e - start);
@@ -70,12 +73,32 @@
       if (!t.data) continue;
       const m = document.createElement("mark");
       m.className = "tw-hl";
-      m.dataset.twId = h.id;
+      m.dataset.twId = id;
       t.replaceWith(m);
       m.append(t);
       any = true;
     }
     return any;
+  }
+  function wrap(doc, h) {
+    const idx = index(doc);
+    const s = locate(idx, h);
+    return s >= 0 && wrapAt(idx, s, s + h.text.length, h.id);
+  }
+  // Re-anchor a whole page's highlights from a single index.
+  function wrapAll(doc) {
+    if (!doc.store.length) return;
+    const idx = index(doc);
+    const found = doc.store.map((h) => ({ h, s: locate(idx, h) })).filter((x) => x.s >= 0).sort((a, b) => b.s - a.s);
+    let floor = Infinity;
+    const later = [];
+    for (const { h, s } of found) {
+      const e = s + h.text.length;
+      if (e > floor) { later.push(h); continue; } // overlaps one already wrapped: redo with a fresh index
+      wrapAt(idx, s, e, h.id);
+      floor = s;
+    }
+    later.forEach((h) => wrap(doc, h));
   }
   function unwrap(doc, id) {
     marksOf(doc, id).forEach((m) => { const p = m.parentNode; m.replaceWith(...m.childNodes); p.normalize(); });
@@ -248,6 +271,7 @@
     const w = document.createTreeWalker(scope.nodeType === 3 ? scope.parentNode : scope, NodeFilter.SHOW_TEXT);
     const clip = hostOf(doc) === document.body ? { top: 0, bottom: innerHeight } : hostOf(doc).getBoundingClientRect();
     const frag = document.createDocumentFragment();
+    const padCache = new Map();
     let count = 0;
     for (let t; (t = w.nextNode()) && count < 4000; ) {
       if (!r.intersectsNode(t) || !doc.root.contains(t) || !t.data.trim()) continue;
@@ -256,7 +280,9 @@
       sub.selectNodeContents(t);
       if (t === r.startContainer) sub.setStart(t, r.startOffset);
       if (t === r.endContainer) sub.setEnd(t, r.endOffset);
-      const pad = parseFloat(getComputedStyle(t.parentElement).fontSize) * 0.04;
+      const pe = t.parentElement;
+      let pad = padCache.get(pe);
+      if (pad === undefined) { pad = parseFloat(getComputedStyle(pe).fontSize) * 0.04; padCache.set(pe, pad); }
       for (const rect of sub.getClientRects()) {
         if (rect.width < 0.5 || rect.bottom < clip.top || rect.top > clip.bottom) continue;
         const d = document.createElement("div");
@@ -420,7 +446,7 @@
     addNotebookButton(doc);
     chrome.storage.local.get(doc.key, (r) => {
       doc.store = Array.isArray(r[doc.key]) ? r[doc.key] : [];
-      doc.store.forEach((h) => wrap(doc, h));
+      wrapAll(doc);
       dress(doc);
     });
   }
