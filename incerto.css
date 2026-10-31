@@ -1,0 +1,384 @@
+/* ==========================================================================
+   Incerto for Wikipedia
+   Typesets Wikipedia like the Technical Incerto (classicthesis-style LaTeX):
+   Palatino body, maroon spaced small caps, Goudy initials, yellow callouts.
+   Everything is scoped under html.incerto so the toolbar toggle is instant.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Incerto Pagella";
+  src: url("chrome-extension://__MSG_@@extension_id__/fonts/pagella-regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Incerto Pagella";
+  src: url("chrome-extension://__MSG_@@extension_id__/fonts/pagella-italic.woff2") format("woff2");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Incerto Pagella";
+  src: url("chrome-extension://__MSG_@@extension_id__/fonts/pagella-bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Incerto Pagella";
+  src: url("chrome-extension://__MSG_@@extension_id__/fonts/pagella-bolditalic.woff2") format("woff2");
+  font-weight: 700; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Incerto Goudy Initials";
+  src: url("chrome-extension://__MSG_@@extension_id__/fonts/goudy-initialen.woff2") format("woff2");
+  font-display: block;
+}
+
+/* ---------- palette (sampled from the book's PDF) ---------- */
+html.incerto {
+  --tw-ink: #111;
+  --tw-maroon: #8f3838;      /* section headings, figure labels, initials */
+  --tw-blue: #0f65a0;        /* cross-references */
+  --tw-green: #377e21;       /* citations [219] */
+  --tw-redlink: #b0473e;
+  --tw-muted: #555;
+  --tw-callout-bg: #fffddb;  /* the yellow box */
+  --tw-callout-rule: #f2e33a;
+  --tw-rule: #111;
+  --tw-serif: "Incerto Pagella", "TeX Gyre Pagella", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", serif;
+  --tw-size: calc(var(--font-size-medium, 1rem) * 1.125);
+  --tw-lead: 1.45;
+}
+html.incerto.skin-theme-clientpref-night {
+  --tw-ink: #e8e3d8; --tw-maroon: #d98a80; --tw-blue: #7ab6e6; --tw-green: #86c46e;
+  --tw-redlink: #e48a80; --tw-muted: #aaa; --tw-callout-bg: #2a2814; --tw-callout-rule: #8a7d22; --tw-rule: #e8e3d8;
+}
+@media (prefers-color-scheme: dark) {
+  html.incerto.skin-theme-clientpref-os {
+    --tw-ink: #e8e3d8; --tw-maroon: #d98a80; --tw-blue: #7ab6e6; --tw-green: #86c46e;
+    --tw-redlink: #e48a80; --tw-muted: #aaa; --tw-callout-bg: #2a2814; --tw-callout-rule: #8a7d22; --tw-rule: #e8e3d8;
+  }
+}
+
+/* ---------- body text ---------- */
+html.incerto #content,
+html.incerto .mw-body,
+html.incerto .vector-toc,
+html.incerto #mw-content-text {
+  font-family: var(--tw-serif);
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  font-kerning: normal;
+  font-feature-settings: "kern", "liga", "onum", "pnum";
+}
+html.incerto .mw-body-content,
+html.incerto #mw-content-text {
+  font-size: var(--tw-size);
+  line-height: var(--tw-lead);
+  color: var(--tw-ink);
+}
+html.incerto .mw-parser-output p {
+  margin: 0;
+  text-indent: 1.5em;
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hanging-punctuation: first;
+}
+html.incerto .mw-parser-output p.tw-first,
+html.incerto .mw-parser-output p.tw-lettrine-p,
+html.incerto .mw-parser-output td p,
+html.incerto .mw-parser-output th p,
+html.incerto .mw-parser-output li p,
+html.incerto .mw-parser-output blockquote p,
+html.incerto .mw-parser-output .infobox p,
+html.incerto .mw-parser-output .sidebar p,
+html.incerto .mw-parser-output .ambox p { text-indent: 0; }
+html.incerto .mw-parser-output p:has(+ :is(ul, ol, dl, table, blockquote)) { margin-bottom: .35em; }
+html.incerto .mw-parser-output :is(ul, ol, dl, table, blockquote) + p { margin-top: .35em; }
+html.incerto .mw-parser-output :is(ul, ol) { margin-top: .25em; }
+html.incerto .mw-parser-output li { margin-bottom: .15em; }
+html.incerto .mw-parser-output dl dt { font-weight: 700; }
+
+/* math variables, italics, bold */
+html.incerto .mw-parser-output i,
+html.incerto .mw-parser-output em { font-style: italic; }
+html.incerto .mw-parser-output b { font-weight: 700; }
+
+/* ---------- links ---------- */
+html.incerto .mw-body a:not(.mw-selflink):not(.cdx-button),
+html.incerto .mw-body a:not(.mw-selflink):visited { color: var(--tw-blue); text-decoration: none; }
+html.incerto .mw-body a:hover { text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .15em; }
+html.incerto .mw-body a.new,
+html.incerto .mw-body a.new:visited { color: var(--tw-redlink); }
+
+/* citations: on the baseline, in green, the way the book prints "[219]" */
+html.incerto .mw-parser-output sup.reference {
+  vertical-align: baseline;
+  font-size: 1em;
+  line-height: inherit;
+  margin-left: .12em;
+  white-space: nowrap;
+}
+html.incerto .mw-parser-output sup.reference a,
+html.incerto .mw-parser-output sup.reference a:visited { color: var(--tw-green) !important; }
+/* lettered notes ([a], [b]) become the book's italic footnote marks */
+html.incerto .mw-parser-output sup.reference.tw-efn {
+  vertical-align: super; font-size: .72em; line-height: 0; margin-left: .05em;
+}
+html.incerto .mw-parser-output sup.reference.tw-efn a { color: var(--tw-blue) !important; font-style: italic; }
+html.incerto .mw-parser-output sup.reference.tw-efn .cite-bracket { display: none; }
+html.incerto .mw-parser-output sup.noprint,
+html.incerto .mw-parser-output .Inline-Template { font-size: .8em; font-style: italic; }
+
+/* ---------- title: the chapter opener ---------- */
+html.incerto .mw-first-heading,
+html.incerto #firstHeading {
+  font-family: var(--tw-serif);
+  font-weight: 400;
+  font-size: 2.15em;
+  line-height: 1.2;
+  color: var(--tw-maroon);
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .1em;
+  border-bottom: none;
+  margin-bottom: .1em;
+}
+html.incerto .mw-first-heading i { font-style: normal; }
+html.incerto .vector-page-titlebar { box-shadow: none; border-bottom: none; }
+html.incerto .vector-page-titlebar::after { display: none; }
+html.incerto #siteSub,
+html.incerto .vector-body-before-content #siteSub {
+  font-family: var(--tw-serif);
+  font-style: italic;
+  font-size: .95em;
+  color: var(--tw-muted);
+}
+html.incerto #contentSub, html.incerto #contentSub2 { font-family: var(--tw-serif); font-style: italic; }
+
+/* ---------- section headings: "3.10   RUIN AND PATH DEPENDENCE" ---------- */
+html.incerto .mw-parser-output :is(h2, h3, h4, h5, h6),
+html.incerto .mw-parser-output .mw-heading :is(h2, h3, h4, h5, h6) {
+  font-family: var(--tw-serif);
+  color: var(--tw-ink);
+  border: none;
+  padding: 0;
+  overflow: visible;
+}
+html.incerto .mw-parser-output .mw-heading { border: none; padding: 0; }
+html.incerto .mw-parser-output .mw-heading2,
+html.incerto .mw-parser-output > h2 { margin: 2.1em 0 .75em; border-bottom: none; }
+html.incerto .mw-parser-output h2,
+html.incerto .mw-parser-output .mw-heading h2 {
+  font-size: 1.12em;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--tw-maroon);
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .085em;
+  font-feature-settings: "kern", "onum", "smcp";
+}
+html.incerto .mw-parser-output .mw-heading3,
+html.incerto .mw-parser-output > h3 { margin: 1.6em 0 .5em; }
+html.incerto .mw-parser-output h3,
+html.incerto .mw-parser-output .mw-heading h3 {
+  font-size: 1em;
+  font-weight: 400;
+  font-style: italic;
+  line-height: var(--tw-lead);
+}
+html.incerto .mw-parser-output .mw-heading4,
+html.incerto .mw-parser-output .mw-heading5,
+html.incerto .mw-parser-output .mw-heading6,
+html.incerto .mw-parser-output > :is(h4, h5, h6) { margin: 1.1em 0 .2em; }
+html.incerto .mw-parser-output :is(h4, h5, h6) {
+  font-size: 1em;
+  font-weight: 700;
+  font-style: normal;
+  line-height: var(--tw-lead);
+}
+/* run-in paragraph heads: "Convex vs. linear functions of a variable X   Consider..." */
+html.incerto .mw-parser-output .tw-runin {
+  float: left;
+  margin: 0 1em 0 0 !important;
+  line-height: var(--tw-lead);
+}
+html.incerto .mw-parser-output .tw-runin :is(h4, h5, h6) { margin: 0; display: inline; }
+html.incerto .mw-parser-output .tw-runin-p { margin-top: 1.1em; }
+html.incerto .mw-parser-output .tw-runin .mw-editsection { display: none; }
+
+/* section numbers, set upright in old-style figures */
+.tw-num { display: none; }
+html.incerto .tw-num {
+  display: inline;
+  font-style: normal;
+  font-variant-caps: normal;
+  letter-spacing: 0;
+  font-feature-settings: "kern", "onum";
+  margin-right: 1.15em;
+}
+
+/* the [edit] links fade into the margin until hovered */
+html.incerto .mw-parser-output .mw-editsection {
+  font-family: var(--tw-serif);
+  font-size: .72em;
+  font-style: italic;
+  font-variant-caps: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0;
+  transition: opacity .2s;
+}
+html.incerto .mw-parser-output :is(.mw-heading, h2, h3, h4):hover .mw-editsection { opacity: .7; }
+
+/* ---------- the Goudy initial (lettrine) ---------- */
+html.incerto .tw-lettrine {
+  float: left;
+  font-family: "Incerto Goudy Initials", var(--tw-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 6.32em;          /* box spans exactly four lines of text */
+  line-height: .8;
+  height: .8em;
+  color: var(--tw-maroon);
+  margin: .055em .1em 0 -.012em;
+  text-indent: 0;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+html.incerto .tw-lettrine-p { text-indent: 0; }
+html.incerto .tw-sc {
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .06em;
+  font-weight: 400;
+}
+
+/* ---------- figures: caption italic, label "Figure 3.17:" in maroon ---------- */
+html.incerto .mw-parser-output figure[typeof~="mw:File/Thumb"],
+html.incerto .mw-parser-output figure[typeof~="mw:File/Frame"],
+html.incerto .mw-parser-output .thumbinner {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+html.incerto .mw-parser-output figure[typeof~="mw:File/Thumb"] > :is(a, span) > img,
+html.incerto .mw-parser-output figure[typeof~="mw:File/Frame"] > :is(a, span) > img,
+html.incerto .mw-parser-output .thumbimage { border: none; }
+html.incerto .mw-parser-output figure > figcaption,
+html.incerto .mw-parser-output .thumbcaption {
+  font-family: var(--tw-serif);
+  font-size: .86em;
+  font-style: italic;
+  line-height: 1.32;
+  text-align: left;
+  hyphens: auto;
+  color: var(--tw-ink);
+  padding: .45em 0 0;
+}
+.tw-figlabel { display: none; }
+html.incerto .tw-figlabel {
+  display: inline;
+  font-style: normal;
+  color: var(--tw-maroon);
+}
+html.incerto .mw-parser-output .gallerytext { font-style: italic; font-size: .85em; }
+
+/* ---------- the yellow callout (infoboxes, sidebars, notices) ---------- */
+html.incerto .mw-parser-output :is(table.infobox, table.sidebar, .ambox, .ombox, .tmbox, .cmbox, .quotebox, .side-box, .tw-callout) {
+  background: var(--tw-callout-bg) !important;
+  border: 2px solid var(--tw-callout-rule) !important;
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--tw-ink);
+  font-family: var(--tw-serif);
+}
+html.incerto .mw-parser-output table.infobox,
+html.incerto .mw-parser-output table.sidebar {
+  font-size: .86em;
+  line-height: 1.35;
+  padding: .5em .6em;
+  border-collapse: separate;
+  border-spacing: 0 .15em;
+}
+html.incerto .mw-parser-output :is(table.infobox, table.sidebar) :is(th, td, tr, tbody) {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--tw-ink) !important;
+}
+html.incerto .mw-parser-output :is(table.infobox, table.sidebar) :is(.infobox-above, caption, .infobox-title, .sidebar-title, .sidebar-pretitle) {
+  font-family: var(--tw-serif);
+  font-weight: 700;
+  font-size: 1.18em;
+  text-align: center;
+  padding: .2em .3em .5em;
+  color: var(--tw-ink);
+  background: transparent !important;
+}
+html.incerto .mw-parser-output :is(table.infobox, table.sidebar) :is(.infobox-header, .infobox-subheader, .sidebar-heading, .sidebar-heading > *) {
+  font-weight: 400;
+  color: var(--tw-maroon) !important;
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .08em;
+  padding-top: .6em;
+}
+html.incerto .mw-parser-output table.infobox .infobox-label { font-weight: 700; padding-right: .6em; text-align: left; }
+html.incerto .mw-parser-output table.infobox .infobox-caption { font-style: italic; }
+html.incerto .mw-parser-output :is(.ambox, .ombox, .tmbox, .cmbox) { border-left-width: 2px !important; }
+html.incerto .mw-parser-output :is(.ambox, .ombox, .tmbox, .cmbox) .mbox-text { font-style: italic; }
+html.incerto .mw-parser-output .quotebox { padding: .7em 1em !important; }
+
+/* ---------- small things ---------- */
+html.incerto .mw-parser-output .hatnote {
+  margin-top: .4em;
+  font-style: italic;
+  font-size: .92em;
+  color: var(--tw-muted);
+  padding-left: 0;
+  margin-bottom: .5em;
+}
+html.incerto .mw-parser-output blockquote {
+  margin: .8em 2.2em;
+  padding: 0;
+  border: none;
+  font-size: .95em;
+}
+/* booktabs tables: rules above and below, no vertical lines */
+html.incerto .mw-parser-output table.wikitable {
+  font-family: var(--tw-serif);
+  background: transparent;
+  color: var(--tw-ink);
+  border: none;
+  border-top: 1.6px solid var(--tw-rule);
+  border-bottom: 1.6px solid var(--tw-rule);
+  border-collapse: collapse;
+  font-size: .92em;
+}
+html.incerto .mw-parser-output table.wikitable > * > tr > :is(th, td) {
+  border: none;
+  background: transparent;
+  padding: .25em .7em;
+}
+html.incerto .mw-parser-output table.wikitable > * > tr:first-child > th { border-bottom: .8px solid var(--tw-rule); font-weight: 700; }
+html.incerto .mw-parser-output table.wikitable > caption { font-style: italic; font-weight: 400; padding-bottom: .4em; }
+
+/* footnotes and references: set small like the book's footnotes */
+html.incerto .mw-parser-output :is(.reflist, .references, .refbegin) {
+  font-size: .86em;
+  line-height: 1.35;
+}
+html.incerto .mw-parser-output .references > li { margin-bottom: .2em; }
+html.incerto .mw-parser-output .navbox { font-family: var(--tw-serif); }
+
+/* table of contents */
+html.incerto .vector-toc .vector-toc-level-1 > .vector-toc-link .vector-toc-text {
+  font-variant-caps: small-caps;
+  text-transform: lowercase;
+  letter-spacing: .06em;
+}
+html.incerto .vector-toc .vector-toc-link,
+html.incerto .vector-toc .vector-toc-link:visited { color: var(--tw-ink); }
+html.incerto .vector-toc .vector-toc-list-item-active > .vector-toc-link,
+html.incerto .vector-toc .vector-toc-list-item-active > .vector-toc-link .vector-toc-text { color: var(--tw-maroon); }
+
+/* a run-in head right under a section title should not add extra space */
+html.incerto .mw-parser-output :is(.mw-heading2, .mw-heading3, h2, h3) + .tw-runin-p { margin-top: 0; }

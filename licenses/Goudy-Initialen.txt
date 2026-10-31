@@ -1,0 +1,9 @@
+Goudy Initialen (fonts/goudy-initialen.woff2)
+
+Floriated initials designed by Frederic W. Goudy in the early 1900s and cast by
+Lanston as "Goudy Initials No. 296". Digitised by Dieter Steffmann
+(Typographer Mediengestaltung, 2000) and distributed freely; packaged for TeX
+in the CTAN "initials" bundle (fonts/initials, used via \usepackage{GoudyIn}),
+which ships in TeX Live's texlive-fonts-extra.
+
+The woff2 here is a lossless format conversion of GoudyIn.pfb from that bundle.
