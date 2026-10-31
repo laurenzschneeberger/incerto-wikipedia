@@ -43,9 +43,10 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
   instead of leaving the page, the way Andy Matuschak's working notes work. Each column scrolls on its
   own; as you scroll the desk sideways, earlier pages slide under later ones and shrink to a spine with
   their title set vertically (click a spine to bring it back). Scrolling past either end gives a small
-  elastic bounce. A grey × appears at the top left of a page when the pointer comes near; it closes that
-  page. The open pages are kept in the address (`?stacked=…`), so reload and Back work.
-* **Contents.** The left column lists the sections of the page you are reading.
+  elastic bounce. A faint grey × at the top left of each page closes it (it darkens when the pointer comes
+  near). The open pages are kept in the address (`?stacked=…`), so reload and Back work.
+* **Contents.** The left column lists the sections of the page you are reading. The ‹ chevron
+  folds it to a thin rail (› or a click on the rail opens it again); this is remembered.
 * **Bibliography.** References, Notes, Sources, Further reading, External links and similar
   sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
   justified. Clicking a label jumps back to where it was cited.

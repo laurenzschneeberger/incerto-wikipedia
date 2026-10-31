@@ -15,7 +15,7 @@
   const emit = (ev, x) => listeners[ev].forEach((f) => { try { f(x); } catch (e) { console.error(e); } });
   TW.columns = [];
 
-  let scroller, track, contents, focused = null;
+  let scroller, track, contents, contentsBody, focused = null;
 
   const display = (t) => t.replace(/_/g, " ").trim();
   const slug = (t) => display(t).replace(/ /g, "_");
@@ -320,14 +320,14 @@
     return c.textContent.trim();
   }
   function buildContents(col) {
-    contents.textContent = "";
+    contentsBody.textContent = "";
     tocItems = [];
     if (!col) return;
     const label = document.createElement("button");
     label.className = "tw-contents-title";
     label.textContent = col.el.querySelector(".tw-col-spine span").textContent;
     label.addEventListener("click", () => col.inner.scrollTo({ top: 0, behavior: "smooth" }));
-    contents.append(label);
+    contentsBody.append(label);
     if (!col.root) return;
     const ul = document.createElement("ul");
     const seen = new Set();
@@ -348,7 +348,7 @@
       ul.append(li);
       tocItems.push({ h, li });
     });
-    contents.append(ul);
+    contentsBody.append(ul);
     trackActive();
   }
   function trackActive() {
@@ -374,6 +374,24 @@
     contents = document.createElement("nav");
     contents.id = "tw-contents";
     contents.setAttribute("aria-label", "Contents");
+    // A chevron folds the contents column into a thin rail (remembered across pages).
+    const chevron = document.createElement("button");
+    chevron.className = "tw-contents-toggle";
+    contentsBody = document.createElement("div");
+    contentsBody.className = "tw-contents-body";
+    contents.append(chevron, contentsBody);
+    const setFolded = (folded, remember) => {
+      html.classList.toggle("tw-contents-folded", folded);
+      chevron.textContent = folded ? "\u203A" : "\u2039";
+      chevron.title = folded ? "Show contents" : "Hide contents";
+      chevron.setAttribute("aria-expanded", String(!folded));
+      if (remember) try { chrome.storage.local.set({ contentsFolded: folded }); } catch (_) {}
+      setTimeout(onScroll, 260);
+    };
+    chevron.addEventListener("click", (e) => { e.stopPropagation(); setFolded(!html.classList.contains("tw-contents-folded"), true); });
+    contents.addEventListener("click", () => { if (html.classList.contains("tw-contents-folded")) setFolded(false, true); });
+    setFolded(false, false);
+    try { chrome.storage.local.get({ contentsFolded: false }, ({ contentsFolded }) => setFolded(contentsFolded, false)); } catch (_) {}
     scroller = document.createElement("div");
     scroller.id = "tw-stack";
     track = document.createElement("div");

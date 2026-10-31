@@ -2,6 +2,7 @@
    Incerto for Wikipedia: the stacked desk
    Pages sit side by side; earlier ones slide under later ones as spines.
    ========================================================================== */
+html.incerto.tw-stacked.tw-contents-folded { --tw-contents-w: 2.4rem; }
 html.incerto.tw-stacked { --tw-contents-w: 15rem; --tw-col-w: calc(var(--tw-article-width, 40rem) + 5.4rem); }
 html.incerto.tw-stacked,
 html.incerto.tw-stacked body { height: 100%; overflow: hidden; }
@@ -28,7 +29,31 @@ html.incerto.tw-stacked #tw-contents {
   background: var(--tw-paper);
   scrollbar-width: thin;
   z-index: 2;
+  transition: width .22s ease;
 }
+html.incerto.tw-stacked #tw-stack { transition: left .22s ease; }
+html.incerto #tw-contents .tw-contents-toggle {
+  position: absolute;
+  top: 1.15rem;
+  right: .55rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 2px;
+  font: 400 1.35rem/1 var(--tw-serif);
+  color: var(--tw-muted);
+  opacity: .55;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+html.incerto #tw-contents .tw-contents-toggle:hover { opacity: 1; color: var(--tw-maroon); background: var(--tw-faint); }
+html.incerto #tw-contents .tw-contents-body { padding-right: 1.2rem; transition: opacity .15s; }
+html.incerto.tw-contents-folded #tw-contents { overflow: hidden; cursor: pointer; padding-left: 0; padding-right: 0; }
+html.incerto.tw-contents-folded #tw-contents .tw-contents-body { opacity: 0; pointer-events: none; }
+html.incerto.tw-contents-folded #tw-contents .tw-contents-toggle { right: .5rem; }
+html.incerto.tw-contents-folded #tw-contents:hover { background: var(--tw-faint); }
 html.incerto #tw-contents .tw-contents-title {
   display: block;
   width: 100%;
@@ -163,13 +188,14 @@ html.incerto .tw-col-close {
   padding: 0;
   font: 400 1.2rem/1 var(--tw-serif);
   color: var(--tw-muted);
-  opacity: 0;
+  opacity: .28;
   cursor: pointer;
   border-radius: 2px;
   transition: opacity .15s;
 }
-html.incerto .tw-col-closezone:hover .tw-col-close { opacity: .75; }
+html.incerto .tw-col-closezone:hover .tw-col-close { opacity: .8; }
 html.incerto .tw-col-close:hover { opacity: 1 !important; color: var(--tw-ink); background: var(--tw-faint); }
+/* the first page can only be closed when there is another to take its place */
 html.incerto:not(.tw-multi) .tw-col-base .tw-col-closezone,
 html.incerto .tw-col.tw-obscured .tw-col-closezone { display: none; }
 
