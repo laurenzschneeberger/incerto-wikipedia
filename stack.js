@@ -85,7 +85,7 @@
   const paint = () => { track.style.transform = over ? `translate3d(${over.toFixed(2)}px,0,0)` : ""; };
   function release() {
     let last = performance.now();
-    const k = 230, c = 2 * Math.sqrt(k) * 0.6; // slightly under-damped: one small rebound
+    const k = 520, c = 2 * Math.sqrt(k) * 0.88; // stiff and nearly critically damped: a quick settle, barely any rebound
     vel = 0;
     const step = (now) => {
       const dt = Math.min(0.032, (now - last) / 1000);
@@ -117,12 +117,12 @@
     if (!atStart && !atEnd && !over) return;
     e.preventDefault();
     if (anim) { cancelAnimationFrame(anim); anim = 0; }
-    const limit = 110;
-    const next = over - dx * 0.38 * (1 - Math.min(Math.abs(over) / limit, 0.92));
+    const limit = 28; // at most a few millimetres of give
+    const next = over - dx * 0.13 * (1 - Math.min(Math.abs(over) / limit, 0.95));
     over = (over > 0 && next < 0) || (over < 0 && next > 0) ? 0 : Math.max(-limit, Math.min(limit, next));
     paint();
     clearTimeout(idle);
-    idle = setTimeout(release, 80);
+    idle = setTimeout(release, 45);
   }
 
   // ---------- columns ----------
