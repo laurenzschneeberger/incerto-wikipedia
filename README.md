@@ -39,20 +39,32 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
 
 ## Beyond the book
 
+* **A desk of pages.** Clicking a link to another article opens it in a new column to the right
+  instead of leaving the page, the way Andy Matuschak's working notes work. Each column scrolls on its
+  own; as you scroll the desk sideways, earlier pages slide under later ones and shrink to a spine with
+  their title set vertically (click a spine to bring it back). Scrolling past either end gives a small
+  elastic bounce. A grey × appears at the top left of a page when the pointer comes near; it closes that
+  page. The open pages are kept in the address (`?stacked=…`), so reload and Back work.
+* **Contents.** The left column lists the sections of the page you are reading.
 * **Bibliography.** References, Notes, Sources, Further reading, External links and similar
   sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
   justified. Clicking a label jumps back to where it was cited.
 * **Header.** Italic "Wikipedia" on the left, search in a compact yellow callout on the right.
-* **Title row.** The title, the ☞ notebook and the ‡ menu share one line. ¶ opens Wikipedia's main
-  menu. Contents is a fixed column on the left (hidden on windows narrower than 1000px).
-* **The ‡ menu.** Talk, Edit, View history, the language list and Appearance: article width, text
+* **Title row.** The title, the ☞ notebook and the ‡ menu share one line; ¶ opens Wikipedia's main menu.
+* **The ‡ menu.** Talk, Edit, View history, the language list and Appearance: page width, text
   size and colour.
 * **Topic tables.** Navboxes become yellow callouts with bold group names.
-* **Quieter chrome.** The footer, Donate / Create account / Log in, and the Article / Talk / Read /
-  Edit / View history tabs are gone. Talk, Edit and View history live in the ‡ menu. All dropdowns and the search suggestions are set in Pagella.
-* **Highlights and margin notes.** Select text and choose *Highlight* or *Note*; a selection already
-  looks like the highlight it would become. Notes sit in the margin right of the article as yellow
-  Post-its, with × to delete. Links inside a highlight still work as links; click the highlighted
-  text itself to add a note or remove it. Everything is kept per article in `chrome.storage.local`.
+* **Quieter chrome.** The footer, Donate / Create account / Log in and the page tabs are gone.
+* **Highlights and notes.** Select text and choose *Highlight* or *Note*; a selection already looks
+  like the highlight it would become. A highlight with a note ends in a thin red rule. Click any
+  highlight and its yellow Post-it unfolds above it: click the text to edit, × to delete the note,
+  *remove highlight* to remove it. Links inside a highlight still work as links. Everything is kept
+  per article in `chrome.storage.local`.
 * **Notebook.** The ☞ (a manicule, the pointing hand readers drew in margins) opens every highlight
-  and note on the page, grouped by section. Click one to jump to it; download them all as Markdown.
+  and note on that page, grouped by section. Click one to jump to it; download them all as Markdown.
+
+## How the desk loads pages
+
+Pages opened on the desk come from Wikipedia's own API on the same site
+(`/w/api.php?action=parse`), are typeset like the first page, and are handed to Wikipedia's
+scripts (`page-hook.js`) so collapsible tables and the like still work.

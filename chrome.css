@@ -30,7 +30,7 @@ html.incerto #vector-page-tools .vector-pinnable-header-unpin-button { display: 
 
 html.incerto .vector-page-titlebar .mw-first-heading { flex-grow: 1; }
 
-/* contents: a fixed column on the left */
+/* contents: Vector's own is hidden; the desk has its own (stack.css) */
 html.incerto #vector-toc-pinned-container,
 html.incerto #vector-page-titlebar-toc,
 html.incerto #vector-sticky-header-toc { display: none !important; }
@@ -38,42 +38,6 @@ html.incerto #vector-toc .vector-pinnable-header-pin-button,
 html.incerto #vector-toc .vector-pinnable-header-unpin-button { display: none !important; }
 html.incerto #vector-toc .vector-toc-link { font-size: .95rem; }
 html.incerto #vector-toc .vector-toc-level-2 .vector-toc-text { font-style: italic; }
-
-#tw-toc-sidebar { display: none; }
-html.incerto #tw-toc-sidebar {
-  display: block;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 50;
-  width: 16rem;
-  box-sizing: border-box;
-  padding: 1.3rem 1.2rem 1.2rem 1.6rem;
-  overflow-y: auto;
-  background: var(--tw-paper);
-  font-family: var(--tw-serif);
-  scrollbar-width: thin;
-}
-html.incerto.tw-toc-narrow #tw-toc-sidebar { display: none; }
-html.incerto #tw-toc-sidebar #vector-toc { position: static; max-height: none; overflow: visible; padding: 0; margin: 0; background: none; box-shadow: none; border: none; }
-/* one rule only: the header's. No underline on the Contents label, no border on Vector's header. */
-html.incerto #tw-toc-sidebar .vector-pinnable-header { border: none !important; padding: 0; margin: 0; box-shadow: none !important; }
-html.incerto #tw-toc-sidebar .vector-pinnable-header-label,
-html.incerto #tw-toc-sidebar .vector-toc-title {
-  display: block;
-  font-size: .9rem;
-  color: var(--tw-maroon);
-  font-variant-caps: small-caps;
-  text-transform: lowercase;
-  letter-spacing: .09em;
-  border: none !important;
-  padding: 0 0 .5rem;
-  margin: 0;
-}
-html.incerto #tw-toc-sidebar .vector-toc-contents { border: none !important; margin: 0; padding: 0; }
-html.incerto #tw-toc-sidebar .vector-toc-list-item { margin: 0; }
-html.incerto #tw-toc-sidebar .vector-toc-link { display: block; padding: .18rem 0; }
 
 /* the page toolbar row is gone: its ⋯ button moves up into the title bar */
 html.incerto .vector-page-toolbar { display: none !important; }

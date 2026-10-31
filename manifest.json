@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Incerto for Wikipedia",
   "short_name": "Incerto",
-  "version": "1.1.0",
-  "description": "Typesets Wikipedia like Nassim Taleb's Technical Incerto, with highlights and margin notes.",
+  "version": "2.0.0",
+  "description": "Typesets Wikipedia like Nassim Taleb's Technical Incerto, with pages stacked side by side, highlights and notes.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -33,10 +33,12 @@
       "css": [
         "incerto.css",
         "chrome.css",
+        "stack.css",
         "annotate.css"
       ],
       "js": [
         "incerto.js",
+        "stack.js",
         "annotate.js"
       ],
       "run_at": "document_start"
@@ -45,7 +47,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "fonts/*.woff2"
+        "fonts/*.woff2",
+        "page-hook.js"
       ],
       "matches": [
         "*://*.wikipedia.org/*"

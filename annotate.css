@@ -26,89 +26,101 @@ html.incerto mark.tw-hl.tw-hot { box-shadow: inset 0 -1.5px 0 var(--tw-maroon); 
 html.incerto mark.tw-hl.tw-flash { animation: tw-flash 1.2s ease-out; }
 @keyframes tw-flash { 0%, 40% { box-shadow: 0 0 0 3px var(--tw-callout-rule); } 100% { box-shadow: 0 0 0 0 transparent; } }
 html.incerto mark.tw-hl a { cursor: pointer; }
-html.incerto .tw-note-mark {
-  font-size: .68em;
-  line-height: 0;
-  vertical-align: super;
-  margin-left: .08em;
-  color: var(--tw-maroon);
-  font-variant-numeric: oldstyle-nums;
-  cursor: pointer;
-}
 
-/* the margin: the space to the right of the article; the text never moves */
-html.incerto #mw-content-text { position: relative; }
-html.incerto .tw-margin {
-  position: absolute;
-  top: 0;
-  left: calc(100% + 1.75rem);
-  width: 15rem;
-  height: 0;
+/* a highlight with a note ends in a thin red rule */
+html.incerto mark.tw-hl.tw-noted-end {
+  box-shadow: inset -1.5px 0 0 var(--tw-maroon);
+  padding-right: .12em;
+  -webkit-box-decoration-break: slice; /* the rule only at the very end, not at every line break */
+  box-decoration-break: slice;
 }
-html.incerto.tw-notes-hidden .tw-margin { display: none; }
-html.incerto .tw-sidenote {
+html.incerto mark.tw-hl.tw-noted-end.tw-flash { animation: tw-flash 1.2s ease-out; }
+
+/* ---------- the Post-it, unfolding above its highlight ---------- */
+html.incerto .tw-postit {
   position: absolute;
-  left: 0;
-  right: 0;
+  z-index: 20;
+  display: none;
+  width: 17.5rem;
   box-sizing: border-box;
+  padding: .6rem 1.7rem .45rem .75rem;
   font-family: var(--tw-serif);
   font-size: 1.05rem;
   font-style: italic;
   line-height: 1.32;
   color: var(--tw-maroon);
-  text-align: left;
-  hyphens: auto;
-  padding: .45rem 1.5rem .5rem .6rem;
   background: var(--tw-callout-bg);
-  box-shadow: 0 0 0 1.5px var(--tw-callout-rule), 0 6px 14px -10px rgba(0, 0, 0, .35);
+  box-shadow: 0 0 0 1.5px var(--tw-callout-rule), 0 10px 24px -14px rgba(0, 0, 0, .45);
   border-radius: 2px;
-  cursor: text;
+  transform-origin: 50% 100%;
 }
-html.incerto .tw-sidenote-num {
-  font-weight: 700;
-  font-style: normal;
-  color: var(--tw-maroon);
-  font-variant-numeric: oldstyle-nums;
-  margin-right: .35em;
-}
-html.incerto .tw-sidenote-text { white-space: pre-wrap; }
-html.incerto .tw-sidenote-x {
-  position: absolute;
-  top: .2rem;
-  right: .25rem;
-  width: 1.1rem;
-  height: 1.1rem;
-  border: none;
-  background: none;
-  padding: 0;
-  font: 1rem/1 var(--tw-serif);
-  font-style: normal;
-  color: var(--tw-maroon);
-  opacity: .35;
-  cursor: pointer;
-  border-radius: 1px;
-}
-html.incerto .tw-sidenote:hover .tw-sidenote-x { opacity: .7; }
-html.incerto .tw-sidenote-x:hover { opacity: 1; background: color-mix(in srgb, var(--tw-callout-rule) 35%, transparent); }
-html.incerto .tw-sidenote.tw-editing .tw-sidenote-x { display: none; }
-html.incerto .tw-sidenote-input {
-  display: block;
+html.incerto .tw-postit.tw-below { transform-origin: 50% 0; }
+html.incerto .tw-postit.tw-show { display: block; }
+html.incerto .tw-postit.tw-unfold { animation: tw-unfold .16s ease-out; }
+@keyframes tw-unfold { from { opacity: 0; transform: scaleY(.6) translateY(4px); } to { opacity: 1; transform: none; } }
+html.incerto .tw-postit-text { white-space: pre-wrap; cursor: text; min-height: 1.3em; }
+html.incerto .tw-postit-input {
+  display: none;
   width: 100%;
   box-sizing: border-box;
-  margin-top: .15rem;
   border: none;
   outline: none;
   resize: none;
+  overflow: hidden;
   background: transparent;
+  padding: 0;
+  margin: 0;
   font: italic 1.05rem/1.32 var(--tw-serif);
   color: var(--tw-maroon);
-  padding: 0;
 }
+html.incerto .tw-postit-input::placeholder { color: color-mix(in srgb, var(--tw-maroon) 45%, transparent); }
+html.incerto .tw-postit.tw-editing .tw-postit-input { display: block; }
+html.incerto .tw-postit.tw-editing .tw-postit-text { display: none; }
+html.incerto .tw-postit-x {
+  position: absolute;
+  top: .25rem;
+  right: .3rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font: 400 1rem/1 var(--tw-serif);
+  color: var(--tw-maroon);
+  opacity: .4;
+  cursor: pointer;
+  border-radius: 1px;
+}
+html.incerto .tw-postit:not(.tw-has-note) .tw-postit-x { display: none; }
+html.incerto .tw-postit-x:hover { opacity: 1; background: color-mix(in srgb, var(--tw-callout-rule) 35%, transparent); }
+html.incerto .tw-postit-foot { margin-top: .35rem; text-align: left; }
+html.incerto .tw-postit-remove {
+  border: none;
+  background: none;
+  padding: 0;
+  font: 400 .78rem var(--tw-serif);
+  font-variant-caps: small-caps;
+  letter-spacing: .06em;
+  color: var(--tw-muted);
+  cursor: pointer;
+}
+html.incerto .tw-postit-remove:hover { color: var(--tw-maroon); }
+html.incerto .tw-postit-tail {
+  position: absolute;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: var(--tw-callout-bg);
+  box-shadow: 1.5px 1.5px 0 0 var(--tw-callout-rule);
+  transform: rotate(45deg);
+}
+html.incerto .tw-postit.tw-below .tw-postit-tail { bottom: auto; top: -6px; box-shadow: -1.5px -1.5px 0 0 var(--tw-callout-rule); }
 
 /* the floating toolbar and the popover on a highlight */
 html.incerto .tw-toolbar {
   position: absolute;
-  z-index: 1000;
+  z-index: 21;
   display: none;
   align-items: stretch;
   background: var(--tw-paper);
@@ -143,12 +155,12 @@ html.incerto .tw-pen { font-variant-caps: normal; color: var(--tw-maroon); }
 /* ---------- selection, painted like a highlight ---------- */
 html.incerto .mw-parser-output ::selection { background: transparent; }
 html.incerto .tw-sel-layer {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 0;
   height: 0;
-  z-index: 4;
+  z-index: 30;
   pointer-events: none;
   mix-blend-mode: multiply; /* yellow on paper, black text stays black */
 }
@@ -168,7 +180,7 @@ html.incerto .tw-manicule {
 html.incerto {
   --tw-manicule: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 747 366'%3E%3Cpath d='M378 342Q305 342 258 318Q211 293 172 290V332H100L90 353L0 342V45L172 35V64Q178 65 184 65Q211 65 264 32Q317 0 352 0Q378 0 400 15Q439 11 468 11Q608 11 678 24Q747 38 747 78Q747 106 702 120Q657 133 537 133Q553 150 553 164Q553 169 547 184Q576 202 576 233Q576 243 567 255Q589 281 589 297Q589 323 551 344Q513 366 467 366Q429 366 413 342ZM89 64 97 298H143V64ZM172 94V264Q218 266 268 297Q309 322 370 322Q385 322 407 321V310Q391 307 384 297Q378 287 376 264Q354 260 345 250Q336 241 326 211H289Q257 211 222 191L229 178Q263 187 286 187Q329 187 363 151L326 106L336 94L387 136Q416 163 442 163Q456 163 466 155Q476 147 476 137Q476 125 459 106L398 45Q378 23 348 23Q337 23 322 30Q306 36 300 40Q293 44 273 57Q214 94 172 94ZM429 35 490 106Q675 106 706 94Q719 88 719 75Q719 57 685 46Q644 33 502 33Q465 33 429 35ZM511 141Q475 177 439 177Q422 177 401 169Q397 167 391 167Q378 167 364 181Q350 195 350 209Q350 221 360 230Q370 239 383 239Q404 239 483 203Q526 182 526 161Q526 151 511 141ZM528 206Q524 206 457 239Q433 249 431 250Q413 255 408 259Q402 263 402 272Q402 281 409 288Q416 294 426 294Q459 294 508 273Q526 266 538 254Q549 242 549 229Q549 221 542 214Q536 206 528 206ZM544 276Q539 276 536 279Q524 286 493 300Q475 308 444 312Q434 313 432 316Q429 318 429 323Q429 334 440 340Q450 347 466 347Q496 347 528 332Q560 317 560 302Q560 295 554 286Q549 277 544 276Z'/%3E%3C/svg%3E");
 }
-html.incerto #tw-notebook-btn {
+html.incerto .tw-notebook-btn {
   position: relative;
   display: flex;
   align-items: center;
@@ -185,9 +197,9 @@ html.incerto #tw-notebook-btn {
   cursor: pointer;
   transition: opacity .15s, color .15s;
 }
-html.incerto #tw-notebook-btn:hover,
-html.incerto.tw-nb-open #tw-notebook-btn { opacity: 1; color: var(--tw-maroon); }
-html.incerto #tw-notebook-btn + #vector-page-tools-dropdown { margin-left: .1rem !important; }
+html.incerto .tw-notebook-btn:hover,
+html.incerto .tw-notebook-btn.tw-on { opacity: 1; color: var(--tw-maroon); }
+html.incerto .tw-notebook-btn + #vector-page-tools-dropdown { margin-left: .1rem !important; }
 html.incerto .tw-nb-count {
   position: absolute;
   top: .05rem;

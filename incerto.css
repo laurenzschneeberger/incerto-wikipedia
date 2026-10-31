@@ -61,14 +61,16 @@ html.incerto.skin-theme-clientpref-night {
 html.incerto #content,
 html.incerto .mw-body,
 html.incerto .vector-toc,
-html.incerto #mw-content-text {
+html.incerto #mw-content-text,
+html.incerto .tw-col {
   font-family: var(--tw-serif);
   font-variant-numeric: oldstyle-nums proportional-nums;
   font-kerning: normal;
   font-feature-settings: "kern", "liga", "onum", "pnum";
 }
 html.incerto .mw-body-content,
-html.incerto #mw-content-text {
+html.incerto #mw-content-text,
+html.incerto .tw-col-body {
   font-size: var(--tw-size);
   line-height: var(--tw-lead);
   color: var(--tw-ink);

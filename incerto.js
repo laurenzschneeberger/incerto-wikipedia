@@ -9,7 +9,8 @@
 
   // Settings: on/off (popup); article width, text size and colour (Appearance in the ··· menu).
   // fontSize / theme left null mean "whatever Wikipedia would do".
-  const DEFAULTS = { enabled: true, width: 46, fontSize: null, theme: null };
+  const DEFAULTS = { enabled: true, width: 40, fontSize: null, theme: null };
+  const TW = (window.TW = window.TW || {});
   const settings = { ...DEFAULTS };
   const FONT_CLASSES = [0, 1, 2].map((n) => `vector-feature-custom-font-size-clientpref-${n}`);
   const THEME_CLASSES = ["day", "night", "os"].map((t) => `skin-theme-clientpref-${t}`);
@@ -22,14 +23,18 @@
     syncAppearanceControls();
   };
   apply();
-  try {
-    chrome.storage.sync.get(DEFAULTS, (s) => { Object.assign(settings, s); apply(); });
-    chrome.storage.onChanged.addListener((c, area) => {
-      if (area !== "sync") return;
-      for (const k in c) if (k in DEFAULTS) settings[k] = c[k].newValue;
-      apply();
-    });
-  } catch (_) { /* storage unavailable: defaults */ }
+  TW.ready = new Promise((resolve) => {
+    try {
+      chrome.storage.sync.get(DEFAULTS, (s) => { Object.assign(settings, s); apply(); resolve({ ...settings }); });
+      chrome.storage.onChanged.addListener((c, area) => {
+        if (area !== "sync") return;
+        // Switching off or on rebuilds the page (the stacked desk is a different layout).
+        if (c.enabled && c.enabled.oldValue !== undefined && c.enabled.newValue !== c.enabled.oldValue) { location.reload(); return; }
+        for (const k in c) if (k in DEFAULTS) settings[k] = c[k].newValue;
+        apply();
+      });
+    } catch (_) { resolve({ ...settings }); }
+  });
   const save = (patch) => { Object.assign(settings, patch); apply(); try { chrome.storage.sync.set(patch); } catch (_) {} };
 
   // Back matter is unnumbered, like \section* in LaTeX.
@@ -296,8 +301,7 @@
     syncAppearanceControls();
   }
 
-  // Talk, Edit, View history, languages and Appearance live in the ‡ menu;
-  // Contents is a fixed column on the left.
+  // Talk, Edit, View history, languages and Appearance live in the ‡ menu.
   function pageChrome() {
     const tools = document.getElementById("vector-page-tools");
     const unpinned = document.getElementById("vector-page-tools-unpinned-container");
@@ -306,39 +310,8 @@
       root.classList.replace("vector-feature-page-tools-pinned-enabled", "vector-feature-page-tools-pinned-disabled");
     }
 
-    // Contents: always open, fixed to the left, starting just below the header.
-    const toc = document.getElementById("vector-toc");
-    if (toc && !document.getElementById("tw-toc-sidebar")) {
-      const side = document.createElement("aside");
-      side.id = "tw-toc-sidebar";
-      side.setAttribute("aria-label", "Contents");
-      side.append(toc);
-      document.body.append(side);
-      root.classList.add("tw-has-toc");
-      root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
-      const header = document.querySelector(".vector-header-container, .mw-header");
-      const inner = document.querySelector(".mw-page-container-inner") || document.querySelector(".mw-body");
-      const place = () => {
-        const top = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
-        side.style.top = `${top}px`;
-      };
-      // Push the page right only as far as needed to clear the column.
-      const clear = () => {
-        const narrow = innerWidth < 1000;
-        root.classList.toggle("tw-toc-narrow", narrow);
-        if (!inner) return;
-        inner.style.paddingLeft = "";
-        if (narrow || !root.classList.contains("incerto")) return;
-        const need = side.getBoundingClientRect().right + 24 - inner.getBoundingClientRect().left;
-        if (need > 0) inner.style.paddingLeft = `${need}px`;
-      };
-      clear();
-      addEventListener("resize", clear);
-      try { chrome.storage.onChanged.addListener((c) => { if (c.enabled) setTimeout(clear, 0); }); } catch (_) {}
-      place();
-      addEventListener("scroll", place, { passive: true });
-      addEventListener("resize", place);
-    }
+    // Contents: replaced by the left column of the stacked desk (stack.js).
+    root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
 
     // The ‡ button moves up into the title bar, level with the title.
     const toolsDropdown = document.getElementById("vector-page-tools-dropdown");
@@ -397,8 +370,7 @@
     }
   }
 
-  function typeset() {
-    const out = document.querySelector("#mw-content-text .mw-parser-output");
+  function typeset(out = document.querySelector("#mw-content-text .mw-parser-output")) {
     if (!out || out.dataset.incerto) return;
     out.dataset.incerto = "1";
     numberSections(out);
@@ -409,6 +381,8 @@
     lettrine(out);
     bibliography(out);
   }
+
+  TW.typeset = typeset; // stack.js typesets each page it loads
 
   function run() {
     typeset();
