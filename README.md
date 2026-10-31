@@ -7,8 +7,7 @@ A Chrome extension that typesets Wikipedia like Nassim Taleb's *Technical Incert
 
 1. Open `chrome://extensions` and switch on **Developer mode**.
 2. Click **Load unpacked** and pick this repository's folder (clone it or download the ZIP first).
-3. Open any Wikipedia article. The toolbar icon (a Goudy "T") switches the typesetting on or off and
-   picks one of three quiet icon sets for the menus (hairlines, ¶ and ∴, or § and ‡).
+3. Open any Wikipedia article. The toolbar icon (a Goudy "T") switches the typesetting on or off.
 
 ## What it copies from the book
 
@@ -43,14 +42,20 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
   sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
   justified. Clicking a label jumps back to where it was cited.
 * **Header.** Italic "Wikipedia" on the left, search in a compact yellow callout on the right.
-* **Title row.** The title and the `···` menu share one line. Contents opens as a sidebar from the
-  left with `⌥Q` (Alt+Q on Windows and Linux), or from the menu.
-* **Article width.** A slider under Appearance in the `···` menu.
+* **Title row.** The title, the ☞ notebook and the ‡ menu share one line. ¶ opens Wikipedia's main
+  menu. Contents is a fixed column on the left (hidden on windows narrower than 1000px).
+* **The ‡ menu.** Talk, Edit, View history, the language list and Appearance: article width, text
+  size and colour.
 * **Topic tables.** Navboxes become yellow callouts with bold group names.
 * **Quieter chrome.** The footer, Donate / Create account / Log in, and the Article / Talk / Read /
-  Edit / View history tabs are gone. Talk, Edit and View history live in the `···` Tools menu,
-  together with the language list (with a filter) and the Appearance settings. All dropdowns and the search suggestions are set in Pagella.
-* **Highlights and margin notes.** Select text in an article and choose *Highlight* or *Note*.
-  Notes appear as numbered italic sidenotes in red in the page margin to the right of the article; the text never moves to make room. Narrow the article with the width slider for more margin. If there is no room, notes show when you hover the highlight. Click a highlight to add a note or
-  remove it, click a note to edit it. Everything is kept per article in `chrome.storage.local`, so it
-  is still there when you come back.
+  Edit / View history tabs are gone. Talk, Edit and View history live in the ‡ menu. All dropdowns and the search suggestions are set in Pagella.
+* **Highlights and margin notes.** Select text and choose *Highlight* or *Note*; a selection already
+  looks like the highlight it would become. Notes sit in the margin right of the article as yellow
+  Post-its, with × to delete. Links inside a highlight still work as links; click the highlighted
+  text itself to add a note or remove it. Everything is kept per article in `chrome.storage.local`.
+* **Notebook.** The ☞ (a manicule, the pointing hand readers drew in margins) opens every highlight
+  and note on the page, grouped by section. Click one to jump to it; download them all as Markdown.
+
+## Fonts and licences (continued)
+
+* The manicule icon is the U+261E outline from GNU FreeSerif (GPL with font exception).

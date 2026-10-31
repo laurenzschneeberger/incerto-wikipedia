@@ -100,6 +100,8 @@
   function layout() {
     if (column.querySelector(".tw-editing")) return; // don't yank the textarea away mid-sentence
     column.innerHTML = "";
+    root.querySelectorAll("mark.tw-hot").forEach((m) => m.classList.remove("tw-hot"));
+    updateNotebook();
     const noted = store.filter((h) => h.note && root.querySelector(`mark.tw-hl[data-tw-id="${h.id}"]`));
     document.documentElement.classList.toggle("tw-has-notes", noted.length > 0); // marker only, no layout change
     if (!noted.length) return;
@@ -125,7 +127,7 @@
       const el = document.createElement("aside");
       el.className = "tw-sidenote tw-ui";
       el.dataset.twId = h.id;
-      el.innerHTML = '<span class="tw-sidenote-num"></span><span class="tw-sidenote-text"></span><button class="tw-sidenote-x" title="Remove note">×</button>';
+      el.innerHTML = '<button class="tw-sidenote-x" title="Delete note">×</button><span class="tw-sidenote-num"></span><span class="tw-sidenote-text"></span>';
       el.querySelector(".tw-sidenote-num").textContent = n;
       el.querySelector(".tw-sidenote-text").textContent = h.note;
       column.append(el);
@@ -273,7 +275,9 @@
     });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { hide(toolbar); hide(popover); } });
     root.addEventListener("click", (e) => {
-      const m = elOf(e.target).closest("mark.tw-hl, .tw-note-mark");
+      const target = elOf(e.target);
+      if (target.closest("a[href]")) return; // links inside a highlight stay links
+      const m = target.closest("mark.tw-hl, .tw-note-mark");
       if (!m || !getSelection().isCollapsed) return;
       const h = store.find((x) => x.id === m.dataset.twId);
       if (!h) return;
@@ -308,6 +312,181 @@
     chrome.storage.onChanged.addListener((c, area) => { if (area === "sync" && c.enabled) relayout(); });
   }
 
+  // ---------- selection drawn like a highlight ----------
+  // ::selection always fills the whole line box; a highlight only covers the letters,
+  // leaving air between lines. So the selection is painted by hand, text node by text node.
+  let selLayer;
+  function paintSelection() {
+    selLayer.textContent = "";
+    if (!document.documentElement.classList.contains("incerto")) return;
+    const sel = getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return;
+    const r = sel.getRangeAt(0);
+    const scope = root.contains(r.commonAncestorContainer) ? r.commonAncestorContainer : root;
+    if (!r.intersectsNode(root)) return;
+    const w = document.createTreeWalker(scope.nodeType === 3 ? scope.parentNode : scope, NodeFilter.SHOW_TEXT);
+    const frag = document.createDocumentFragment();
+    let count = 0;
+    for (let t; (t = w.nextNode()) && count < 4000; ) {
+      if (!r.intersectsNode(t) || !root.contains(t) || !t.data.trim()) continue;
+      count++;
+      const sub = document.createRange();
+      sub.selectNodeContents(t);
+      if (t === r.startContainer) sub.setStart(t, r.startOffset);
+      if (t === r.endContainer) sub.setEnd(t, r.endOffset);
+      const pad = parseFloat(getComputedStyle(t.parentElement).fontSize) * 0.04;
+      for (const rect of sub.getClientRects()) {
+        if (rect.width < 0.5) continue;
+        const d = document.createElement("div");
+        d.style.cssText = `left:${rect.left + scrollX}px;top:${rect.top + scrollY - pad}px;width:${rect.width}px;height:${rect.height + 2 * pad}px`;
+        frag.append(d);
+      }
+    }
+    selLayer.append(frag);
+  }
+  let selQueued = false;
+  const queueSelection = () => {
+    if (selQueued) return;
+    selQueued = true;
+    requestAnimationFrame(() => { selQueued = false; paintSelection(); });
+  };
+
+  // ---------- the notebook: every highlight and note on the page ----------
+  let nbButton, nbPanel;
+  const firstMark = (id) => root.querySelector(`mark.tw-hl[data-tw-id="${id}"]`);
+  function sectionOf(el) {
+    let found = null;
+    root.querySelectorAll("h2, h3").forEach((h) => {
+      if (h.closest("table, .navbox, .infobox") ) return;
+      if (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) found = h;
+    });
+    if (!found) return "";
+    const c = found.cloneNode(true);
+    c.querySelectorAll(".mw-editsection").forEach((n) => n.remove());
+    const num = c.querySelector(".tw-num");
+    const n = num ? num.textContent.trim() : "";
+    if (num) num.remove();
+    return (n ? `${n} ` : "") + c.textContent.trim();
+  }
+  function entries() {
+    return store
+      .map((h) => ({ h, el: firstMark(h.id) }))
+      .filter((x) => x.el)
+      .sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+      .map(({ h, el }) => ({ h, el, section: sectionOf(el) }));
+  }
+  const pageTitle = () => (document.querySelector(".mw-page-title-main, #firstHeading")?.textContent || document.title).trim();
+  function toMarkdown() {
+    const list = entries();
+    const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    const canon = document.querySelector('link[rel="canonical"]')?.href || location.href;
+    const out = [`# ${pageTitle()}`, "", `*Wikipedia* · <${canon}> · ${date}`, ""];
+    let last = null;
+    list.forEach(({ h, section }) => {
+      if (section !== last) { out.push(`## ${section || "Introduction"}`, ""); last = section; }
+      out.push(`> ${h.text.replace(/\s*\n\s*/g, " ")}`, "");
+      if (h.note) out.push(`**Note.** ${h.note.replace(/\n/g, "  \n")}`, "");
+    });
+    return out.join("\n");
+  }
+  function download() {
+    const blob = new Blob([toMarkdown()], { type: "text/markdown;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${pageTitle().replace(/[\\/:*?"<>|]+/g, " ").trim()} - notebook.md`;
+    a.style.display = "none";
+    document.body.append(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 4000);
+  }
+  function updateNotebook() {
+    if (!nbButton) return;
+    const n = store.filter((h) => firstMark(h.id)).length;
+    nbButton.querySelector(".tw-nb-count").textContent = n ? n : "";
+    if (nbPanel && document.documentElement.classList.contains("tw-nb-open")) renderNotebook();
+  }
+  function renderNotebook() {
+    const list = entries();
+    const notes = list.filter((x) => x.h.note).length;
+    nbPanel.querySelector(".tw-nb-sub").textContent =
+      `${pageTitle()} · ${list.length} highlight${list.length === 1 ? "" : "s"}, ${notes} note${notes === 1 ? "" : "s"}`;
+    const body = nbPanel.querySelector(".tw-nb-list");
+    body.textContent = "";
+    if (!list.length) {
+      const p = document.createElement("p");
+      p.className = "tw-nb-empty";
+      p.textContent = "Nothing yet. Select a passage and choose Highlight or Note.";
+      body.append(p);
+    }
+    let last = null;
+    list.forEach(({ h, section }) => {
+      if (section !== last) {
+        const s = document.createElement("div");
+        s.className = "tw-nb-section";
+        s.textContent = section || "Introduction";
+        body.append(s);
+        last = section;
+      }
+      const item = document.createElement("button");
+      item.className = "tw-nb-item";
+      item.dataset.twId = h.id;
+      const q = document.createElement("span");
+      q.className = "tw-nb-quote";
+      q.textContent = h.text;
+      item.append(q);
+      if (h.note) {
+        const n = document.createElement("span");
+        n.className = "tw-nb-note";
+        n.textContent = h.note;
+        item.append(n);
+      }
+      body.append(item);
+    });
+    nbPanel.querySelector(".tw-nb-dl").disabled = !list.length;
+  }
+  function toggleNotebook(force) {
+    const open = typeof force === "boolean" ? force : !document.documentElement.classList.contains("tw-nb-open");
+    document.documentElement.classList.toggle("tw-nb-open", open);
+    if (open) renderNotebook();
+  }
+  function makeNotebook() {
+    nbButton = document.createElement("button");
+    nbButton.id = "tw-notebook-btn";
+    nbButton.className = "tw-ui";
+    nbButton.title = "Notebook: your highlights and notes";
+    nbButton.innerHTML = '<span class="tw-manicule"></span><span class="tw-nb-count"></span>';
+    nbButton.addEventListener("click", () => toggleNotebook());
+    const titlebar = document.querySelector(".vector-page-titlebar");
+    const tools = titlebar && titlebar.querySelector("#vector-page-tools-dropdown");
+    if (tools) tools.before(nbButton);
+    else if (titlebar) titlebar.append(nbButton);
+    else document.getElementById("firstHeading")?.after(nbButton);
+
+    nbPanel = document.createElement("aside");
+    nbPanel.id = "tw-notebook";
+    nbPanel.className = "tw-ui";
+    nbPanel.setAttribute("aria-label", "Notebook");
+    nbPanel.innerHTML =
+      '<div class="tw-nb-head"><span class="tw-manicule"></span><div><div class="tw-nb-title">Notebook</div>' +
+      '<div class="tw-nb-sub"></div></div><button class="tw-nb-close" title="Close">×</button></div>' +
+      '<div class="tw-nb-list"></div>' +
+      '<div class="tw-nb-foot"><button class="tw-nb-dl">Download as Markdown</button></div>';
+    document.body.append(nbPanel);
+    nbPanel.querySelector(".tw-nb-close").addEventListener("click", () => toggleNotebook(false));
+    nbPanel.querySelector(".tw-nb-dl").addEventListener("click", download);
+    nbPanel.querySelector(".tw-nb-list").addEventListener("click", (e) => {
+      const item = e.target.closest(".tw-nb-item");
+      const m = item && firstMark(item.dataset.twId);
+      if (!m) return;
+      m.scrollIntoView({ behavior: "smooth", block: "center" });
+      const all = root.querySelectorAll(`mark.tw-hl[data-tw-id="${item.dataset.twId}"]`);
+      all.forEach((x) => { x.classList.remove("tw-flash"); void x.offsetWidth; x.classList.add("tw-flash"); });
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && document.documentElement.classList.contains("tw-nb-open")) toggleNotebook(false);
+    });
+  }
+
   function init() {
     root = document.querySelector("#mw-content-text .mw-parser-output");
     if (!root || root.dataset.twNotes) return;
@@ -318,6 +497,13 @@
     host.append(column);
     key = pageKey();
     makeUI();
+    makeNotebook();
+    selLayer = document.createElement("div");
+    selLayer.className = "tw-sel-layer tw-ui";
+    selLayer.setAttribute("aria-hidden", "true");
+    document.body.append(selLayer);
+    document.addEventListener("selectionchange", queueSelection);
+    addEventListener("resize", queueSelection);
     bind();
     chrome.storage.local.get(key, (r) => {
       store = Array.isArray(r[key]) ? r[key] : [];

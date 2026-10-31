@@ -1,11 +1,6 @@
-const DEFAULTS = { enabled: true, icons: "a" };
-chrome.storage.sync.get(DEFAULTS, (s) => {
-  document.querySelector('[name="enabled"]').checked = s.enabled !== false;
-  const r = document.querySelector(`[name="icons"][value="${s.icons}"]`);
-  if (r) r.checked = true;
+chrome.storage.sync.get({ enabled: true }, ({ enabled }) => {
+  document.querySelector('[name="enabled"]').checked = enabled !== false;
 });
-document.querySelector(".key").textContent = /Mac/.test(navigator.platform) ? "\u2325Q" : "Alt+Q";
 document.addEventListener("change", (e) => {
-  const el = e.target;
-  chrome.storage.sync.set({ [el.name]: el.type === "checkbox" ? el.checked : el.value });
+  if (e.target.name === "enabled") chrome.storage.sync.set({ enabled: e.target.checked });
 });

@@ -7,15 +7,19 @@
   const root = document.documentElement;
   root.classList.add("incerto");
 
-  // Settings: on/off and icon set (popup), article width (Appearance slider).
-  const DEFAULTS = { enabled: true, icons: "a", width: 46 };
+  // Settings: on/off (popup); article width, text size and colour (Appearance in the ··· menu).
+  // fontSize / theme left null mean "whatever Wikipedia would do".
+  const DEFAULTS = { enabled: true, width: 46, fontSize: null, theme: null };
   const settings = { ...DEFAULTS };
+  const FONT_CLASSES = [0, 1, 2].map((n) => `vector-feature-custom-font-size-clientpref-${n}`);
+  const THEME_CLASSES = ["day", "night", "os"].map((t) => `skin-theme-clientpref-${t}`);
+  const swapClass = (all, keep) => { all.forEach((c) => root.classList.remove(c)); root.classList.add(keep); };
   const apply = () => {
     root.classList.toggle("incerto", settings.enabled !== false);
-    root.dataset.twIcons = settings.icons || DEFAULTS.icons;
     root.style.setProperty("--tw-article-width", `${settings.width}rem`);
-    const slider = document.querySelector("#tw-width input");
-    if (slider && +slider.value !== +settings.width) slider.value = settings.width;
+    if (settings.fontSize !== null && settings.fontSize !== undefined) swapClass(FONT_CLASSES, FONT_CLASSES[settings.fontSize]);
+    if (settings.theme) swapClass(THEME_CLASSES, `skin-theme-clientpref-${settings.theme}`);
+    syncAppearanceControls();
   };
   apply();
   try {
@@ -26,6 +30,7 @@
       apply();
     });
   } catch (_) { /* storage unavailable: defaults */ }
+  const save = (patch) => { Object.assign(settings, patch); apply(); try { chrome.storage.sync.set(patch); } catch (_) {} };
 
   // Back matter is unnumbered, like \section* in LaTeX.
   const UNNUMBERED = /^(see also|notes?|references?|citations?|sources|bibliography|further reading|external links|footnotes|works cited|literature|einzelnachweise|weblinks|literatur|siehe auch|anmerkungen|notes et références|références|voir aussi|liens externes|bibliographie)$/i;
@@ -236,27 +241,64 @@
   }
   const toAlpha = (n) => { let s = ""; while (n > 0) { n--; s = String.fromCharCode(97 + (n % 26)) + s; n = Math.floor(n / 26); } return s; };
 
-  const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-  const KEY_LABEL = IS_MAC ? "\u2325Q" : "Alt+Q";
-  function toggleToc(force) {
-    const open = typeof force === "boolean" ? force : !root.classList.contains("tw-toc-open");
-    root.classList.toggle("tw-toc-open", open);
-    try { chrome.storage.local.set({ tocOpen: open }); } catch (_) {}
-  }
-  document.addEventListener("keydown", (e) => {
-    if (!root.classList.contains("incerto")) return;
-    if (e.code === "KeyQ" && e.altKey && !e.ctrlKey && !e.metaKey) {
-      const t = e.target;
-      if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
-      e.preventDefault();
-      toggleToc();
-    } else if (e.key === "Escape" && root.classList.contains("tw-toc-open")) toggleToc(false);
-  }, true);
-  try { chrome.storage.local.get({ tocOpen: false }, ({ tocOpen }) => root.classList.toggle("tw-toc-open", tocOpen)); } catch (_) {}
-
   // Talk, Edit and View history go into the Tools menu; so do the languages.
-  function pageChrome() {
+  // Appearance: our own controls, so they work wherever Wikipedia put (or never rendered) its panel.
+  function currentFontSize() {
+    const i = FONT_CLASSES.findIndex((c) => root.classList.contains(c));
+    return i < 0 ? 1 : i;
+  }
+  function currentTheme() {
+    const t = ["day", "night", "os"].find((x) => root.classList.contains(`skin-theme-clientpref-${x}`));
+    return t || "day";
+  }
+  function syncAppearanceControls() {
+    const box = document.getElementById("tw-appearance");
+    if (!box) return;
+    const slider = box.querySelector('input[type="range"]');
+    if (slider && +slider.value !== +settings.width) slider.value = settings.width;
+    const fs = String(currentFontSize()), th = currentTheme();
+    box.querySelectorAll("[data-fs]").forEach((b) => b.classList.toggle("tw-on", b.dataset.fs === fs));
+    box.querySelectorAll("[data-theme]").forEach((b) => b.classList.toggle("tw-on", b.dataset.theme === th));
+  }
+  function buildAppearance(tools) {
+    if (document.getElementById("tw-appearance")) return;
+    const box = document.createElement("div");
+    box.id = "tw-appearance";
+    box.className = "vector-menu mw-portlet tw-added";
+    box.innerHTML =
+      '<div class="vector-menu-heading">Appearance</div>' +
+      '<div class="vector-menu-content">' +
+      '<div class="tw-app-label">Article width</div>' +
+      '<input type="range" min="30" max="80" step="1" aria-label="Article width">' +
+      '<div class="tw-width-ends"><span>narrow</span><span>wide</span></div>' +
+      '<div class="tw-app-label">Text</div>' +
+      '<div class="tw-seg"><button data-fs="0">small</button><button data-fs="1">standard</button><button data-fs="2">large</button></div>' +
+      '<div class="tw-app-label">Colour</div>' +
+      '<div class="tw-seg"><button data-theme="os">auto</button><button data-theme="day">light</button><button data-theme="night">dark</button></div>' +
+      "</div>";
+    const slider = box.querySelector("input");
+    slider.value = settings.width;
+    let t;
+    slider.addEventListener("input", () => {
+      settings.width = +slider.value;
+      root.style.setProperty("--tw-article-width", `${settings.width}rem`);
+      clearTimeout(t);
+      t = setTimeout(() => chrome.storage.sync.set({ width: settings.width }), 250);
+    });
+    box.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      e.preventDefault();
+      if (b.dataset.fs) save({ fontSize: +b.dataset.fs });
+      if (b.dataset.theme) save({ theme: b.dataset.theme });
+    });
+    tools.append(box);
+    syncAppearanceControls();
+  }
 
+  // Talk, Edit, View history, languages and Appearance live in the ‡ menu;
+  // Contents is a fixed column on the left.
+  function pageChrome() {
     const tools = document.getElementById("vector-page-tools");
     const unpinned = document.getElementById("vector-page-tools-unpinned-container");
     if (tools && unpinned && !unpinned.contains(tools)) {
@@ -264,72 +306,50 @@
       root.classList.replace("vector-feature-page-tools-pinned-enabled", "vector-feature-page-tools-pinned-disabled");
     }
 
-    // Contents: a sidebar that slides in from the left, toggled with ⌥Q / Alt+Q.
+    // Contents: always open, fixed to the left, starting just below the header.
     const toc = document.getElementById("vector-toc");
     if (toc && !document.getElementById("tw-toc-sidebar")) {
       const side = document.createElement("aside");
       side.id = "tw-toc-sidebar";
       side.setAttribute("aria-label", "Contents");
       side.append(toc);
-      const hint = document.createElement("div");
-      hint.className = "tw-toc-hint";
-      hint.textContent = `${KEY_LABEL} to close`;
-      side.append(hint);
       document.body.append(side);
+      root.classList.add("tw-has-toc");
       root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
-      side.addEventListener("click", (e) => { if (e.target.closest("a.vector-toc-link") && innerWidth < 1100) toggleToc(false); });
+      const header = document.querySelector(".vector-header-container, .mw-header");
+      const inner = document.querySelector(".mw-page-container-inner") || document.querySelector(".mw-body");
+      const place = () => {
+        const top = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+        side.style.top = `${top}px`;
+      };
+      // Push the page right only as far as needed to clear the column.
+      const clear = () => {
+        const narrow = innerWidth < 1000;
+        root.classList.toggle("tw-toc-narrow", narrow);
+        if (!inner) return;
+        inner.style.paddingLeft = "";
+        if (narrow || !root.classList.contains("incerto")) return;
+        const need = side.getBoundingClientRect().right + 24 - inner.getBoundingClientRect().left;
+        if (need > 0) inner.style.paddingLeft = `${need}px`;
+      };
+      clear();
+      addEventListener("resize", clear);
+      try { chrome.storage.onChanged.addListener((c) => { if (c.enabled) setTimeout(clear, 0); }); } catch (_) {}
+      place();
+      addEventListener("scroll", place, { passive: true });
+      addEventListener("resize", place);
     }
 
-    // The ⋯ button moves up into the title bar, level with the title.
+    // The ‡ button moves up into the title bar, level with the title.
     const toolsDropdown = document.getElementById("vector-page-tools-dropdown");
     const titlebar = document.querySelector(".vector-page-titlebar");
     if (toolsDropdown && titlebar && !titlebar.contains(toolsDropdown)) titlebar.append(toolsDropdown);
 
-    // Appearance (text size, width, colour) moves into the same menu.
-    const appearance = document.getElementById("vector-appearance");
-    if (tools && appearance && !tools.contains(appearance)) {
-      tools.append(appearance);
-      root.classList.replace("vector-feature-appearance-pinned-clientpref-1", "vector-feature-appearance-pinned-clientpref-0");
-    }
-
-    // Article width slider, at the top of Appearance.
-    const appearanceBox = document.getElementById("vector-appearance") || tools;
-    if (appearanceBox && !document.getElementById("tw-width")) {
-      const box = document.createElement("div");
-      box.id = "tw-width";
-      box.className = "vector-menu mw-portlet tw-added";
-      box.innerHTML =
-        '<div class="vector-menu-heading">Article width</div>' +
-        '<div class="vector-menu-content"><input type="range" min="30" max="80" step="1" aria-label="Article width">' +
-        '<div class="tw-width-ends"><span>narrow</span><span>wide</span></div></div>';
-      const input = box.querySelector("input");
-      input.value = settings.width;
-      let t;
-      input.addEventListener("input", () => {
-        settings.width = +input.value;
-        root.style.setProperty("--tw-article-width", `${settings.width}rem`);
-        clearTimeout(t);
-        t = setTimeout(() => chrome.storage.sync.set({ width: settings.width }), 250);
-      });
-      const header = appearanceBox.querySelector(":scope > .vector-pinnable-header");
-      if (header) header.after(box); else appearanceBox.prepend(box);
-    }
+    // Wikipedia's own Appearance panel is replaced by ours (it renders lazily and unreliably once moved).
+    root.classList.replace("vector-feature-appearance-pinned-clientpref-1", "vector-feature-appearance-pinned-clientpref-0");
+    if (tools) buildAppearance(tools);
 
     const actions = document.querySelector("#p-cactions .vector-menu-content-list");
-    if (actions && toc && !document.getElementById("tw-ca-toc")) {
-      const li = document.createElement("li");
-      li.id = "tw-ca-toc";
-      li.className = "mw-list-item tw-added";
-      li.innerHTML = '<a href="#"><span>Contents</span><span class="tw-kbd"></span></a>';
-      li.querySelector(".tw-kbd").textContent = KEY_LABEL;
-      li.querySelector("a").addEventListener("click", (e) => {
-        e.preventDefault();
-        const cb = document.getElementById("vector-page-tools-dropdown-checkbox");
-        if (cb) cb.checked = false;
-        toggleToc();
-      });
-      actions.prepend(li);
-    }
     if (actions) {
       document.getElementById("p-cactions").classList.remove("emptyPortlet");
       const talk = document.querySelector("#ca-talk a");
@@ -343,8 +363,6 @@
         actions.prepend(li);
       }
     }
-    const tocItem = document.getElementById("tw-ca-toc");
-    if (actions && tocItem) actions.prepend(tocItem);
 
     const langLinks = [...document.querySelectorAll("#p-lang-btn .interlanguage-link a, #p-lang .interlanguage-link a")];
     if (tools && langLinks.length && !document.getElementById("tw-languages")) {
@@ -395,6 +413,7 @@
   function run() {
     typeset();
     pageChrome();
+    apply();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
