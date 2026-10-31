@@ -7,22 +7,12 @@
   const root = document.documentElement;
   root.classList.add("incerto");
 
-  // Settings: on/off plus the header and navbox variants, mirrored onto <html>.
-  const DEFAULTS = { enabled: true, header: "a", navbox: "a" };
-  const apply = (s) => {
-    root.classList.toggle("incerto", s.enabled !== false);
-    root.dataset.twHeader = s.header || DEFAULTS.header;
-    root.dataset.twNavbox = s.navbox || DEFAULTS.navbox;
-  };
-  const settings = { ...DEFAULTS };
-  apply(settings);
+  // On/off, set from the toolbar popup.
+  const apply = (on) => root.classList.toggle("incerto", on !== false);
   try {
-    chrome.storage.sync.get(DEFAULTS, (s) => { Object.assign(settings, s); apply(settings); });
-    chrome.storage.onChanged.addListener((c) => {
-      for (const k in c) settings[k] = c[k].newValue;
-      apply(settings);
-    });
-  } catch (_) { /* storage unavailable: defaults */ }
+    chrome.storage.sync.get({ enabled: true }, ({ enabled }) => apply(enabled));
+    chrome.storage.onChanged.addListener((c) => { if (c.enabled) apply(c.enabled.newValue); });
+  } catch (_) { /* storage unavailable: stay on */ }
 
   // Back matter is unnumbered, like \section* in LaTeX.
   const UNNUMBERED = /^(see also|notes?|references?|citations?|sources|bibliography|further reading|external links|footnotes|works cited|literature|einzelnachweise|weblinks|literatur|siehe auch|anmerkungen|notes et références|références|voir aussi|liens externes|bibliographie)$/i;
@@ -254,6 +244,13 @@
       root.classList.replace("vector-feature-toc-pinned-clientpref-1", "vector-feature-toc-pinned-clientpref-0");
     }
 
+    // Appearance (text size, width, colour) moves into the same menu.
+    const appearance = document.getElementById("vector-appearance");
+    if (tools && appearance && !tools.contains(appearance)) {
+      tools.append(appearance);
+      root.classList.replace("vector-feature-appearance-pinned-clientpref-1", "vector-feature-appearance-pinned-clientpref-0");
+    }
+
     const actions = document.querySelector("#p-cactions .vector-menu-content-list");
     if (actions) {
       document.getElementById("p-cactions").classList.remove("emptyPortlet");
@@ -298,7 +295,7 @@
         });
       });
       const after = document.getElementById("p-cactions");
-      if (after && tools.contains(after)) after.after(box); else tools.append(box);
+      if (after && tools.contains(after)) after.after(box); else tools.prepend(box);
     }
   }
 

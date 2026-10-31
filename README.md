@@ -7,8 +7,7 @@ A Chrome extension that typesets Wikipedia like Nassim Taleb's *Technical Incert
 
 1. Open `chrome://extensions` and switch on **Developer mode**.
 2. Click **Load unpacked** and pick this repository's folder (clone it or download the ZIP first).
-3. Open any Wikipedia article. The toolbar icon (a Goudy "T") opens the settings: switch it on or off,
-   and pick one of three header styles and one of three styles for the topic tables (navboxes).
+3. Open any Wikipedia article. The toolbar icon (a Goudy "T") switches the typesetting on or off.
 
 ## What it copies from the book
 
@@ -42,21 +41,14 @@ Colours were sampled from the book's PDF. Wikipedia's dark mode gets a matching 
 * **Bibliography.** References, Notes, Sources, Further reading, External links and similar
   sections are set like the book's bibliography: `[241]` labels hanging in the margin, one column,
   justified. Clicking a label jumps back to where it was cited.
+* **Header.** Italic "Wikipedia" on the left, the article title as a small-caps running head, search
+  in a compact yellow callout.
+* **Topic tables.** Navboxes become yellow callouts with bold group names.
 * **Quieter chrome.** The footer, Donate / Create account / Log in, and the Article / Talk / Read /
   Edit / View history tabs are gone. Talk, Edit and View history live in the `···` Tools menu,
-  together with the language list (with a filter). Contents is folded into the button beside the
+  together with the language list (with a filter) and the Appearance settings. Contents is folded into the button beside the
   title. All dropdowns and the search suggestions are set in Pagella.
 * **Highlights and margin notes.** Select text in an article and choose *Highlight* or *Note*.
-  Notes appear as numbered italic sidenotes in the right margin. Click a highlight to add a note or
+  Notes appear as numbered italic sidenotes in red in the right margin. Click a highlight to add a note or
   remove it, click a note to edit it. Everything is kept per article in `chrome.storage.local`, so it
   is still there when you come back.
-
-### Header styles
-* **Running head**: "Wikipedia" in maroon spaced small caps, italic tagline, hairline below.
-* **Frontispiece**: a Goudy initial W, the rest in small caps, search in a yellow callout, double rule.
-* **Book page**: italic wordmark, the article title as a running head, like a printed page.
-
-### Topic-table styles
-* **Index**: booktabs rules, italic group names, ink links, no colour.
-* **Callout**: the yellow box, bold group names.
-* **Prose**: the table becomes paragraphs with run-in group heads.

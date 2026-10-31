@@ -1,12 +1,6 @@
-const DEFAULTS = { enabled: true, header: "a", navbox: "a" };
-chrome.storage.sync.get(DEFAULTS, (s) => {
-  document.querySelector('[name="enabled"]').checked = s.enabled !== false;
-  for (const k of ["header", "navbox"]) {
-    const r = document.querySelector(`[name="${k}"][value="${s[k]}"]`);
-    if (r) r.checked = true;
-  }
+chrome.storage.sync.get({ enabled: true }, ({ enabled }) => {
+  document.querySelector('[name="enabled"]').checked = enabled !== false;
 });
 document.addEventListener("change", (e) => {
-  const el = e.target;
-  chrome.storage.sync.set({ [el.name]: el.type === "checkbox" ? el.checked : el.value });
+  if (e.target.name === "enabled") chrome.storage.sync.set({ enabled: e.target.checked });
 });

@@ -106,7 +106,7 @@
     // Wide window: notes live in the empty space right of the article.
     // Narrow window: the article gives up a margin for them.
     const room = document.documentElement.clientWidth - column.parentElement.getBoundingClientRect().right;
-    document.documentElement.classList.toggle("tw-notes-outside", room >= 260);
+    document.documentElement.classList.toggle("tw-notes-outside", room >= 300);
     const host = column.parentElement.getBoundingClientRect();
     const items = noted
       .map((h) => ({ h, top: root.querySelector(`mark.tw-hl[data-tw-id="${h.id}"]`).getBoundingClientRect().top - host.top }))
@@ -151,7 +151,7 @@
       ta.className = "tw-sidenote-input";
       ta.value = h.note.trim();
       ta.placeholder = "Write a note…";
-      ta.rows = Math.max(2, Math.ceil(ta.value.length / 26));
+      ta.rows = Math.max(2, Math.ceil(ta.value.length / 24));
       span.replaceWith(ta);
       el.classList.add("tw-editing");
       ta.focus();
@@ -177,7 +177,7 @@
         if (e.key === "Escape") { e.preventDefault(); done(false); }
         if (e.key === "Enter" && (e.metaKey || e.ctrlKey || !e.shiftKey)) { e.preventDefault(); done(true); }
       });
-      ta.addEventListener("input", () => { ta.rows = Math.max(2, Math.ceil(ta.value.length / 26)); });
+      ta.addEventListener("input", () => { ta.rows = Math.max(2, Math.ceil(ta.value.length / 24)); });
       ta.addEventListener("blur", () => done(true));
     }));
   }

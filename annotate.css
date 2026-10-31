@@ -36,14 +36,14 @@ html.incerto .tw-note-mark {
 
 /* the margin: reserved only once a page has notes */
 html.incerto #mw-content-text { position: relative; }
-html.incerto.tw-has-notes #mw-content-text { padding-right: 15rem; }
+html.incerto.tw-has-notes #mw-content-text { padding-right: 17rem; }
 html.incerto.tw-has-notes.tw-notes-outside #mw-content-text { padding-right: 0; }
 html.incerto.tw-notes-outside .tw-margin { right: auto; left: calc(100% + 1.75rem); }
 html.incerto .tw-margin {
   position: absolute;
   top: 0;
   right: 0;
-  width: 13rem;
+  width: 15rem;
   height: 0;
 }
 html.incerto .tw-sidenote {
@@ -51,10 +51,10 @@ html.incerto .tw-sidenote {
   left: 0;
   right: 0;
   font-family: var(--tw-serif);
-  font-size: .86rem;
+  font-size: 1.05rem;
   font-style: italic;
   line-height: 1.32;
-  color: var(--tw-ink);
+  color: var(--tw-maroon);
   text-align: left;
   hyphens: auto;
   padding: .1rem .3rem .15rem;
@@ -65,6 +65,7 @@ html.incerto .tw-sidenote {
 }
 html.incerto .tw-sidenote:hover { background: var(--tw-callout-bg); }
 html.incerto .tw-sidenote-num {
+  font-weight: 700;
   font-style: normal;
   color: var(--tw-maroon);
   font-variant-numeric: oldstyle-nums;
@@ -95,8 +96,8 @@ html.incerto .tw-sidenote-input {
   outline: none;
   resize: none;
   background: transparent;
-  font: italic .86rem/1.32 var(--tw-serif);
-  color: var(--tw-ink);
+  font: italic 1.05rem/1.32 var(--tw-serif);
+  color: var(--tw-maroon);
   padding: 0;
 }
 
