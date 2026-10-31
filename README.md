@@ -6,7 +6,7 @@ A Chrome extension that typesets Wikipedia like Nassim Taleb's *Technical Incert
 ## Install
 
 1. Open `chrome://extensions` and switch on **Developer mode**.
-2. Click **Load unpacked** and pick this `taleb-wikipedia` folder.
+2. Click **Load unpacked** and pick this repository's folder (clone it or download the ZIP first).
 3. Open any Wikipedia article. Click the toolbar icon (a Goudy "T") to toggle it off and on.
 
 ## What it copies from the book
